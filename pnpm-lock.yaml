@@ -20,6 +20,9 @@ importers:
 
   apps/examples:
     dependencies:
+      '@adraw/react':
+        specifier: workspace:*
+        version: link:../../packages/react
       react:
         specifier: ^19.2.0
         version: 19.2.4

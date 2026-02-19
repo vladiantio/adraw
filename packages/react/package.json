@@ -1,35 +1,36 @@
 {
-	"name": "@adraw/react",
-	"version": "0.1.0",
-	"description": "",
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"require": "./dist/index.cjs",
-			"default": "./dist/index.js"
-		}
-	},
-	"bin": "./dist/index.js",
-	"files": [
-		"dist"
-	],
-	"scripts": {
-		"build": "tsup --minify",
-		"dev": "tsup --watch"
-	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
-	"packageManager": "pnpm@10.30.0",
-	"devDependencies": {
-		"@types/react": "19.2.14",
-		"@types/react-dom": "19.2.3",
-		"tsup": "8.5.1",
-		"typescript": "5.9.3"
-	},
-	"dependencies": {
-		"react": "19.2.4",
-		"react-dom": "19.2.4"
-	}
+  "name": "@adraw/react",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
+  "bin": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup --minify",
+    "dev": "tsup --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.30.0",
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  }
 }
