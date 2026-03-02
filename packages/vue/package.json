@@ -1,5 +1,5 @@
 {
-  "name": "@adraw/react",
+  "name": "@adraw/vue",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -17,14 +17,11 @@
     "@adraw/core": "workspace:*"
   },
   "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0"
+    "vue": "^3.0.0"
   },
   "devDependencies": {
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
     "tsup": "8.5.1",
     "typescript": "5.9.3",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "vue": "^3.0.0"
   }
 }

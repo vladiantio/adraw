@@ -10,8 +10,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "outDir": "dist",
-    "jsx": "react-jsx"
+    "outDir": "dist"
   },
-  "include": ["src"]
+  "include": ["src", "src/**/*.svelte"]
 }

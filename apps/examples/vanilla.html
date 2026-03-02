@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adraw Vanilla Example</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+        #app { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+        #toolbar { padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 10px; background: #eee; }
+        #canvas-container { flex: 1; position: relative; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="toolbar">
+            <button id="btn-select" type="button">Select (V)</button>
+            <button id="btn-rect" type="button">Rectangle (R)</button>
+            <button id="btn-ellipse" type="button">Ellipse</button>
+            <button id="btn-draw" type="button">Draw (D)</button>
+            <button id="btn-hand" type="button">Hand (H)</button>
+            <button id="btn-erase" type="button">Erase (E)</button>
+        </div>
+        <div id="canvas-container"></div>
+    </div>
+    <script type="module">
+        import { createAdrawCanvas } from '@adraw/vanilla';
+
+        const container = document.getElementById('canvas-container');
+        const { store } = createAdrawCanvas(container);
+
+        document.getElementById('btn-select').onclick = () => store.send({ type: 'SET_TOOL', tool: 'select' });
+        document.getElementById('btn-rect').onclick = () => store.send({ type: 'SET_TOOL', tool: 'rectangle' });
+        document.getElementById('btn-ellipse').onclick = () => store.send({ type: 'SET_TOOL', tool: 'ellipse' });
+        document.getElementById('btn-draw').onclick = () => store.send({ type: 'SET_TOOL', tool: 'draw' });
+        document.getElementById('btn-hand').onclick = () => store.send({ type: 'SET_TOOL', tool: 'hand' });
+        document.getElementById('btn-erase').onclick = () => store.send({ type: 'SET_TOOL', tool: 'erase' });
+    </script>
+</body>
+</html>

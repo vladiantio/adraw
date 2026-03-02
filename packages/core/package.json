@@ -1,13 +1,20 @@
 {
   "name": "@adraw/core",
   "version": "0.1.0",
-  "description": "",
   "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.30.0"
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "devDependencies": {
+    "tsup": "8.5.1",
+    "typescript": "5.9.3"
+  }
 }
