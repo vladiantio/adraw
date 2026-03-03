@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup --minify",
+    "build": "tsup --minify terser",
     "dev": "tsup --watch"
   },
   "keywords": [],
