@@ -153,6 +153,33 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.14)
 
+  packages/solid:
+    dependencies:
+      solid-js:
+        specifier: ^1.9.11
+        version: 1.9.11
+
+  packages/svelte:
+    devDependencies:
+      '@tsconfig/svelte':
+        specifier: ^5.0.8
+        version: 5.0.8
+      svelte:
+        specifier: ^5.53.6
+        version: 5.53.6
+
+  packages/vanilla: {}
+
+  packages/vue:
+    dependencies:
+      vue:
+        specifier: ^3.5.29
+        version: 3.5.29(typescript@5.9.3)
+    devDependencies:
+      '@vue/tsconfig':
+        specifier: ^0.8.1
+        version: 0.8.1(typescript@5.9.3)(vue@3.5.29(typescript@5.9.3))
+
 packages:
 
   '@astrojs/compiler@2.13.0':

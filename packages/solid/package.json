@@ -1,0 +1,16 @@
+{
+  "name": "@adraw/solid",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "build": "tsup --minify terser",
+    "dev": "tsup --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "solid-js": "^1.9.11"
+  }
+}
