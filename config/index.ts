@@ -1,6 +1,6 @@
-import { defineConfig } from "tsup"
+import { defineConfig, type Options } from "tsup"
 
-export const tsupConfig = () =>
+export const tsupConfig = (options?: Options) =>
   defineConfig({
     entry: ["src/index.ts"],
     format: ["cjs", "esm"],
@@ -8,5 +8,5 @@ export const tsupConfig = () =>
     splitting: false,
     sourcemap: true,
     clean: true,
-    external: ["react", "react-dom", "vue", "svelte", "solid-js"],
+    ...options,
   })

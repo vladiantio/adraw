@@ -1,11 +1,5 @@
-import { defineConfig } from "tsup"
+import { tsupConfig } from "../../config"
 
-export default defineConfig({
-  entry: ["src/index.ts"],
-  format: ["cjs", "esm"],
-  dts: false,
-  splitting: false,
-  sourcemap: true,
-  clean: true,
-  external: ["react", "react-dom", "vue", "svelte", "solid-js", "@adraw/core"],
+export default tsupConfig({
+  external: ["vue", "@adraw/core", "@adraw/vanilla"],
 })
