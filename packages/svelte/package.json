@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsup --minify terser",
     "dev": "tsup --watch"
@@ -10,6 +18,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "@adraw/core": "workspace:*",
+    "@adraw/vanilla": "workspace:*"
+  },
   "devDependencies": {
     "@tsconfig/svelte": "^5.0.8",
     "svelte": "^5.53.6"

@@ -11,7 +11,6 @@
       "default": "./dist/index.js"
     }
   },
-  "bin": "./dist/index.js",
   "files": [
     "dist"
   ],
@@ -22,12 +21,14 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "@adraw/core": "workspace:*",
+    "@adraw/vanilla": "workspace:*",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
   "devDependencies": {
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3"
-  },
-  "dependencies": {
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
   }
 }
