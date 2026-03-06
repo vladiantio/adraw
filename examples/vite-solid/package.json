@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@adraw/core": "workspace:*",
+    "@adraw/solid": "workspace:*",
     "solid-js": "^1.9.10"
   },
   "devDependencies": {
