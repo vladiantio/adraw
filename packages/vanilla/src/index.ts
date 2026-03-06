@@ -1,8 +1,16 @@
-import type { CanvasElement, CanvasOptions, ToolType } from "@adraw/core"
+import type {
+  CanvasElement,
+  CanvasOptions,
+  SnappingConfig,
+  ToolType,
+  ViewportState,
+} from "@adraw/core"
 import { Canvas } from "@adraw/core"
 
 export interface VanillaCanvasOptions extends CanvasOptions {
   container: HTMLElement
+  initialViewport?: ViewportState
+  snapping?: Partial<SnappingConfig>
 }
 
 export class VanillaCanvas {
