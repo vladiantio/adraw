@@ -116,16 +116,16 @@ export interface CanvasProps {
 }
 
 export function Canvas(props: CanvasProps) {
-  let container: HTMLDivElement
-  let vanilla: VanillaCanvas
-  let canvasData: ReturnType<typeof createCanvas>
+  let container: HTMLDivElement | undefined = undefined
+  let vanilla: VanillaCanvas | undefined = undefined
+  let canvasData: ReturnType<typeof createCanvas> | undefined = undefined
 
   onMount(() => {
     canvasData = createCanvas()
     ;(window as any).__adrawSvelteCanvas = canvasData
 
     vanilla = new VanillaCanvas({
-      container,
+      container: container!,
     })
     vanilla.render()
   })
