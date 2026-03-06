@@ -2,6 +2,7 @@
 
 import type {
   CanvasElement,
+  CanvasEventMap,
   CanvasOptions,
   Canvas as CoreCanvas,
   ElementId,
@@ -20,9 +21,7 @@ import React, {
   useState,
 } from "react"
 
-export interface CanvasReactOptions extends CanvasOptions {
-  initialViewport?: ViewportState
-}
+export interface CanvasReactOptions extends CanvasOptions {}
 
 interface CanvasContextValue {
   canvas: CoreCanvas | null
@@ -53,7 +52,6 @@ export function CanvasProvider({ children, options }: CanvasProviderProps) {
   })
   const [activeTool, setActiveTool] = useState<ToolType>("select")
   const [selectedIds, setSelectedIds] = useState<Set<ElementId>>(new Set())
-  const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -68,24 +66,35 @@ export function CanvasProvider({ children, options }: CanvasProviderProps) {
 
     const core = vanilla.getCore()
 
-    core.on("change", ({ elements: newElements }) => {
-      setElements(new Map(newElements))
-    })
+    core.on<"change">(
+      "change",
+      ({ elements: newElements }: CanvasEventMap["change"]) => {
+        setElements(new Map(newElements))
+      },
+    )
 
-    core.on("viewportChange", ({ viewport: newViewport }) => {
-      setViewport(newViewport)
-    })
+    core.on<"viewportChange">(
+      "viewportChange",
+      ({ viewport: newViewport }: CanvasEventMap["viewportChange"]) => {
+        setViewport(newViewport)
+      },
+    )
 
-    core.on("toolChange", ({ tool }) => {
-      setActiveTool(tool)
-    })
+    core.on<"toolChange">(
+      "toolChange",
+      ({ tool }: CanvasEventMap["toolChange"]) => {
+        setActiveTool(tool)
+      },
+    )
 
-    core.on("selectionChange", ({ selectedIds: newSelectedIds }) => {
-      setSelectedIds(new Set(newSelectedIds))
-    })
+    core.on<"selectionChange">(
+      "selectionChange",
+      ({ selectedIds: newSelectedIds }: CanvasEventMap["selectionChange"]) => {
+        setSelectedIds(new Set(newSelectedIds))
+      },
+    )
 
     vanilla.render()
-    setIsReady(true)
 
     return () => {
       vanilla.destroy()
