@@ -7,16 +7,7 @@ import {
   type ViewportState,
 } from "@adraw/core"
 import { VanillaCanvas } from "@adraw/vanilla"
-import {
-  createApp,
-  h,
-  onMounted,
-  onUnmounted,
-  type Ref,
-  reactive,
-  ref,
-  type VNode,
-} from "vue"
+import { h, onMounted, onUnmounted, reactive, ref, type VNode } from "vue"
 
 export interface CanvasVueOptions extends CanvasOptions {
   initialViewport?: ViewportState
