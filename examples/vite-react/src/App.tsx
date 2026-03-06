@@ -1,6 +1,11 @@
 import type { ToolType } from "@adraw/core"
-import { CanvasProvider, useHistory, useTool, useViewport } from "@adraw/react"
-import { useCallback } from "react"
+import {
+  Canvas,
+  CanvasProvider,
+  useHistory,
+  useTool,
+  useViewport,
+} from "@adraw/react"
 
 function Toolbar() {
   const { tool, setTool } = useTool()
@@ -22,6 +27,7 @@ function Toolbar() {
       {tools.map((t) => (
         <button
           key={t.id}
+          type="button"
           style={{
             ...styles.button,
             ...(tool === t.id ? styles.activeButton : {}),
@@ -33,39 +39,36 @@ function Toolbar() {
         </button>
       ))}
       <div style={styles.separator} />
-      <button style={styles.button} onClick={undo} disabled={!canUndo()}>
+      <button
+        type="button"
+        style={styles.button}
+        onClick={undo}
+        disabled={!canUndo()}
+      >
         Undo
       </button>
-      <button style={styles.button} onClick={redo} disabled={!canRedo()}>
+      <button
+        type="button"
+        style={styles.button}
+        onClick={redo}
+        disabled={!canRedo()}
+      >
         Redo
       </button>
       <div style={styles.separator} />
-      <button style={styles.button} onClick={zoomIn}>
+      <button type="button" style={styles.button} onClick={zoomIn}>
         +
       </button>
-      <button style={styles.button} onClick={zoomOut}>
+      <button type="button" style={styles.button} onClick={zoomOut}>
         -
       </button>
-      <button style={styles.button} onClick={zoomToFit}>
+      <button type="button" style={styles.button} onClick={zoomToFit}>
         Fit
       </button>
-      <button style={styles.button} onClick={resetZoom}>
+      <button type="button" style={styles.button} onClick={resetZoom}>
         Reset
       </button>
     </div>
-  )
-}
-
-function Canvas() {
-  return (
-    <div
-      id="canvas"
-      style={{
-        width: "100%",
-        height: "calc(100vh - 50px)",
-        background: "white",
-      }}
-    />
   )
 }
 
@@ -74,7 +77,13 @@ function App() {
     <CanvasProvider>
       <div style={styles.app}>
         <Toolbar />
-        <Canvas />
+        <Canvas
+          style={{
+            width: "100%",
+            height: "calc(100vh - 50px)",
+            background: "white",
+          }}
+        />
       </div>
     </CanvasProvider>
   )
