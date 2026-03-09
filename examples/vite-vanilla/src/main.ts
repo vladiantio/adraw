@@ -8,13 +8,13 @@ const container = document.querySelector<HTMLDivElement>("#app")!
 const toolbar = document.createElement("div")
 toolbar.className = "toolbar"
 toolbar.innerHTML = `
-  <button data-tool="select" title="Select (V)">V</button>
-  <button data-tool="hand" title="Hand (H)">H</button>
-  <button data-tool="rectangle" title="Rectangle (R)">R</button>
-  <button data-tool="ellipse" title="Ellipse (E)">E</button>
-  <button data-tool="star" title="Star (S)">S</button>
-  <button data-tool="draw" title="Draw (D)">D</button>
-  <button data-tool="eraser" title="Eraser (E)">E</button>
+  <button data-tool="select" title="Select (V)">Select</button>
+  <button data-tool="hand" title="Hand (H)">Hand</button>
+  <button data-tool="rectangle" title="Rectangle (R)">Rectangle</button>
+  <button data-tool="ellipse" title="Ellipse (E)">Ellipse</button>
+  <button data-tool="star" title="Star (S)">Star</button>
+  <button data-tool="draw" title="Draw (D)">Draw</button>
+  <button data-tool="eraser" title="Eraser (E)">Eraser</button>
   <div class="separator"></div>
   <button data-action="undo" title="Undo (Ctrl+Z)">Undo</button>
   <button data-action="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
