@@ -5,7 +5,7 @@ import type {
   ToolType,
   ViewportState,
 } from "@adraw/core"
-import { Canvas } from "@adraw/core"
+import { Canvas, panViewport } from "@adraw/core"
 
 export interface VanillaCanvasOptions extends CanvasOptions {
   container: HTMLElement
@@ -21,6 +21,11 @@ export class VanillaCanvas {
   private temporaryGroup: SVGGElement | null = null
   private guidesGroup: SVGGElement | null = null
   private resizeObserver: ResizeObserver | null = null
+
+  // Touch gesture state
+  private pinchStartDistance: number | null = null
+  private pinchStartCenter: { x: number; y: number } | null = null
+  private pinchViewportState: ViewportState | null = null
 
   constructor(options: VanillaCanvasOptions) {
     this.container = options.container
@@ -42,6 +47,7 @@ export class VanillaCanvas {
     this.svgElement.setAttribute("height", "100%")
     this.svgElement.style.display = "block"
     this.svgElement.style.background = "var(--adraw-background, #ffffff)"
+    this.svgElement.style.touchAction = "none"
 
     this.elementsGroup = document.createElementNS(
       "http://www.w3.org/2000/svg",
@@ -101,6 +107,118 @@ export class VanillaCanvas {
       { passive: false },
     )
 
+    this.svgElement?.addEventListener(
+      "touchstart",
+      (event) => {
+        if (event.touches.length === 2) {
+          event.preventDefault()
+          this.pinchStartDistance = Math.hypot(
+            event.touches[0].clientX - event.touches[1].clientX,
+            event.touches[0].clientY - event.touches[1].clientY,
+          )
+          this.pinchStartCenter = {
+            x: (event.touches[0].clientX + event.touches[1].clientX) / 2,
+            y: (event.touches[0].clientY + event.touches[1].clientY) / 2,
+          }
+          this.pinchViewportState = { ...this.canvas.getViewport() }
+        } else if (event.touches.length === 1) {
+          // Pass single touch as pointer down
+          this.canvas.handlePointerDown(
+            event.touches[0].clientX,
+            event.touches[0].clientY,
+            event as unknown as PointerEvent, // Mock for simple coordinates
+          )
+          this.render()
+        }
+      },
+      { passive: false },
+    )
+
+    this.svgElement?.addEventListener(
+      "touchmove",
+      (event) => {
+        if (
+          event.touches.length === 2 &&
+          this.pinchStartDistance !== null &&
+          this.pinchStartCenter &&
+          this.pinchViewportState
+        ) {
+          event.preventDefault()
+
+          const currentDistance = Math.hypot(
+            event.touches[0].clientX - event.touches[1].clientX,
+            event.touches[0].clientY - event.touches[1].clientY,
+          )
+          const currentCenter = {
+            x: (event.touches[0].clientX + event.touches[1].clientX) / 2,
+            y: (event.touches[0].clientY + event.touches[1].clientY) / 2,
+          }
+
+          const scale = currentDistance / this.pinchStartDistance
+
+          // Apply scaling relative to the start state and start center point
+          const rect = this.svgElement?.getBoundingClientRect()
+          if (!rect) return
+
+          const canvasCenter = {
+            x:
+              (this.pinchStartCenter.x - rect.left - rect.width / 2) /
+                this.pinchViewportState.zoom +
+              this.pinchViewportState.x,
+            y:
+              (this.pinchStartCenter.y - rect.top - rect.height / 2) /
+                this.pinchViewportState.zoom +
+              this.pinchViewportState.y,
+          }
+
+          let newViewport = { ...this.pinchViewportState }
+
+          // Calculate zoom based on the ratio. zoomViewport takes deltaY which we don't naturally have here,
+          // so we calculate the zoom directly or simulate zoomViewport correctly.
+          // Since core zoomViewport uses deltaY logic, let's just use it with a proportional delta.
+          // Or update viewport directly:
+          newViewport.zoom = Math.max(
+            0.1,
+            Math.min(this.pinchViewportState.zoom * scale, 10),
+          )
+
+          // Adjust position so the center stays exactly where it was
+          newViewport.x =
+            canvasCenter.x -
+            (canvasCenter.x - this.pinchViewportState.x) *
+              (this.pinchViewportState.zoom / newViewport.zoom)
+          newViewport.y =
+            canvasCenter.y -
+            (canvasCenter.y - this.pinchViewportState.y) *
+              (this.pinchViewportState.zoom / newViewport.zoom)
+
+          newViewport = panViewport(newViewport, {
+            x: (this.pinchStartCenter.x - currentCenter.x) / newViewport.zoom,
+            y: (this.pinchStartCenter.y - currentCenter.y) / newViewport.zoom,
+          })
+
+          this.canvas.setViewport(newViewport)
+          this.render()
+        } else if (event.touches.length === 1 && !this.pinchStartDistance) {
+          this.canvas.handlePointerMove(
+            event.touches[0].clientX,
+            event.touches[0].clientY,
+            event as unknown as PointerEvent,
+          )
+          this.render()
+        }
+      },
+      { passive: false },
+    )
+
+    this.svgElement?.addEventListener("touchend", (event) => {
+      this.handleTouchEnd(event)
+    })
+
+    this.svgElement?.addEventListener("touchcancel", (event) => {
+      this.handleTouchEnd(event)
+    })
+
     document.addEventListener("keydown", (event) => {
       this.canvas.handleKeyDown(event)
       this.render()
@@ -123,6 +241,23 @@ export class VanillaCanvas {
     })
   }
 
+  private handleTouchEnd(event: TouchEvent) {
+    if (event.touches.length < 2) {
+      this.pinchStartDistance = null
+      this.pinchStartCenter = null
+      this.pinchViewportState = null
+    }
+
+    if (event.touches.length === 0) {
+      this.canvas.handlePointerUp(
+        event.changedTouches[0].clientX,
+        event.changedTouches[0].clientY,
+        event as unknown as PointerEvent,
+      )
+      this.render()
+    }
+  }
+
   private updateCursor(tool: ToolType): void {
     const cursors: Record<ToolType, string> = {
       select: "default",
@@ -134,21 +269,24 @@ export class VanillaCanvas {
       star: "crosshair",
       media: "copy",
     }
-    this.svgElement!.style.cursor = cursors[tool] || "default"
+    if (this.svgElement)
+      this.svgElement.style.cursor = cursors[tool] || "default"
   }
 
   render(): void {
     const viewport = this.canvas.getViewport()
 
-    this.elementsGroup!.setAttribute(
-      "transform",
-      `translate(${this.container.clientWidth / 2}, ${this.container.clientHeight / 2}) scale(${viewport.zoom}) translate(${-viewport.x}, ${-viewport.y})`,
-    )
+    if (this.elementsGroup)
+      this.elementsGroup.setAttribute(
+        "transform",
+        `translate(${this.container.clientWidth / 2}, ${this.container.clientHeight / 2}) scale(${viewport.zoom}) translate(${-viewport.x}, ${-viewport.y})`,
+      )
 
-    this.temporaryGroup!.setAttribute(
-      "transform",
-      `translate(${this.container.clientWidth / 2}, ${this.container.clientHeight / 2}) scale(${viewport.zoom}) translate(${-viewport.x}, ${-viewport.y})`,
-    )
+    if (this.temporaryGroup)
+      this.temporaryGroup.setAttribute(
+        "transform",
+        `translate(${this.container.clientWidth / 2}, ${this.container.clientHeight / 2}) scale(${viewport.zoom}) translate(${-viewport.x}, ${-viewport.y})`,
+      )
 
     this.renderTemporary()
   }
@@ -170,7 +308,7 @@ export class VanillaCanvas {
         group.setAttribute("class", "adraw-element")
       }
 
-      this.elementsGroup!.appendChild(group)
+      if (this.elementsGroup) this.elementsGroup.appendChild(group)
     }
   }
 
@@ -183,7 +321,7 @@ export class VanillaCanvas {
     if (tempElement) {
       const group = this.createElementGroup(tempElement)
       group.setAttribute("class", "adraw-temporary-element")
-      this.temporaryGroup!.appendChild(group)
+      if (this.temporaryGroup) this.temporaryGroup.appendChild(group)
     }
   }
 
