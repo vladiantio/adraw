@@ -3,4 +3,4 @@ minimumReleaseAge: 1440
 packages:
   - packages/*
   - examples/*
-  - web/*
+  - web
