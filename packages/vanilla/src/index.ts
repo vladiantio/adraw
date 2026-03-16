@@ -82,26 +82,39 @@ export class VanillaCanvas {
     this.resizeObserver.observe(this.container)
   }
 
+  private getRelativePoint(event: MouseEvent | PointerEvent | WheelEvent): { x: number; y: number } {
+    if (!this.svgElement) return { x: event.clientX, y: event.clientY }
+    const rect = this.svgElement.getBoundingClientRect()
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    }
+  }
+
   private setupEventListeners(): void {
     this.svgElement?.addEventListener("pointerdown", (event) => {
-      this.canvas.handlePointerDown(event.clientX, event.clientY, event)
+      const { x, y } = this.getRelativePoint(event)
+      this.canvas.handlePointerDown(x, y, event)
       this.render()
     })
 
     this.svgElement?.addEventListener("pointermove", (event) => {
-      this.canvas.handlePointerMove(event.clientX, event.clientY, event)
+      const { x, y } = this.getRelativePoint(event)
+      this.canvas.handlePointerMove(x, y, event)
       this.render()
     })
 
     this.svgElement?.addEventListener("pointerup", (event) => {
-      this.canvas.handlePointerUp(event.clientX, event.clientY, event)
+      const { x, y } = this.getRelativePoint(event)
+      this.canvas.handlePointerUp(x, y, event)
       this.render()
     })
 
     this.svgElement?.addEventListener(
       "wheel",
       (event) => {
-        this.canvas.handleWheel(event)
+        const { x, y } = this.getRelativePoint(event)
+        this.canvas.handleWheel(event, x, y)
         this.render()
       },
       { passive: false },

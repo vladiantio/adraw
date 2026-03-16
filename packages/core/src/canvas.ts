@@ -225,17 +225,28 @@ export class Canvas {
     this.activeTool.onPointerUp(this.getToolContext(), point, event)
   }
 
-  handleWheel(event: WheelEvent): void {
+  handleWheel(event: WheelEvent, screenX?: number, screenY?: number): void {
     event.preventDefault()
 
     if (event.ctrlKey || event.metaKey) {
-      const rect = (event.target as HTMLElement).getBoundingClientRect()
+      let x = screenX ?? event.clientX
+      let y = screenY ?? event.clientY
+
+      if (screenX === undefined || screenY === undefined) {
+        const currentTarget = event.currentTarget as HTMLElement | null
+        if (currentTarget) {
+          const rect = currentTarget.getBoundingClientRect()
+          x = event.clientX - rect.left
+          y = event.clientY - rect.top
+        }
+      }
+
       const centerPoint = {
         x:
-          (event.clientX - rect.left - rect.width / 2) / this.viewport.zoom +
+          (x - this.canvasSize.width / 2) / this.viewport.zoom +
           this.viewport.x,
         y:
-          (event.clientY - rect.top - rect.height / 2) / this.viewport.zoom +
+          (y - this.canvasSize.height / 2) / this.viewport.zoom +
           this.viewport.y,
       }
       this.viewport = zoomViewport(this.viewport, -event.deltaY, centerPoint)
