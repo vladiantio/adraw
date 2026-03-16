@@ -10,7 +10,9 @@
     "dev:all": "pnpm -r --parallel dev",
     "dev:docs": "pnpm --filter=docs dev",
     "dev:examples": "pnpm --filter=examples dev",
-    "dev:react": "pnpm --filter=react dev"
+    "dev:react": "pnpm --filter=react dev",
+    "lint": "biome lint --write .",
+    "lint:fix": "biome check --write ."
   },
   "packageManager": "pnpm@10.30.0",
   "devDependencies": {
