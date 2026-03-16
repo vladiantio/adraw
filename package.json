@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "build:all": "pnpm -r build",
-    "build:docs": "pnpm --filter=docs build",
-    "build:examples": "pnpm --filter=examples build",
     "build:react": "pnpm --filter=react build",
+    "build:examples": "pnpm --filter=examples build",
+    "build:web": "pnpm --filter=web build",
     "dev:all": "pnpm -r --parallel dev",
-    "dev:docs": "pnpm --filter=docs dev",
-    "dev:examples": "pnpm --filter=examples dev",
     "dev:react": "pnpm --filter=react dev",
+    "dev:examples": "pnpm --filter=examples dev",
+    "dev:web": "pnpm --filter=web dev",
     "lint": "biome lint --write .",
     "lint:fix": "biome check --write ."
   },
