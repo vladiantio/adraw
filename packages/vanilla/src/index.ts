@@ -138,10 +138,13 @@ export class VanillaCanvas {
           }
           this.pinchViewportState = { ...this.canvas.getViewport() }
         } else if (event.touches.length === 1) {
-          // Pass single touch as pointer down
+          // Pass single touch as pointer down with relative coordinates
+          const { x, y } = this.getRelativePoint(
+            event.touches[0] as unknown as PointerEvent,
+          )
           this.canvas.handlePointerDown(
-            event.touches[0].clientX,
-            event.touches[0].clientY,
+            x,
+            y,
             event as unknown as PointerEvent, // Mock for simple coordinates
           )
           this.render()
@@ -216,11 +219,11 @@ export class VanillaCanvas {
           this.canvas.setViewport(newViewport)
           this.render()
         } else if (event.touches.length === 1 && !this.pinchStartDistance) {
-          this.canvas.handlePointerMove(
-            event.touches[0].clientX,
-            event.touches[0].clientY,
-            event as unknown as PointerEvent,
+          // Pass single touch move with relative coordinates
+          const { x, y } = this.getRelativePoint(
+            event.touches[0] as unknown as PointerEvent,
           )
+          this.canvas.handlePointerMove(x, y, event as unknown as PointerEvent)
           this.render()
         }
       },
@@ -265,11 +268,11 @@ export class VanillaCanvas {
     }
 
     if (event.touches.length === 0) {
-      this.canvas.handlePointerUp(
-        event.changedTouches[0].clientX,
-        event.changedTouches[0].clientY,
-        event as unknown as PointerEvent,
+      // Pass touch end with relative coordinates
+      const { x, y } = this.getRelativePoint(
+        event.changedTouches[0] as unknown as PointerEvent,
       )
+      this.canvas.handlePointerUp(x, y, event as unknown as PointerEvent)
       this.render()
     }
   }
