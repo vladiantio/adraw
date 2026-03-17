@@ -7,13 +7,13 @@ import type {
 import { Canvas, panViewport } from "@adraw/core"
 import { createElementGroup } from "./utils"
 
-export interface VanillaCanvasOptions extends CanvasOptions {
+export interface AdrawCanvasOptions extends CanvasOptions {
   container: HTMLElement
   initialViewport?: ViewportState
   snapping?: Partial<SnappingConfig>
 }
 
-export class VanillaCanvas {
+export class AdrawCanvas {
   private canvas: Canvas
   private container: HTMLElement
   private svgElement: SVGSVGElement | null = null
@@ -27,7 +27,7 @@ export class VanillaCanvas {
   private pinchStartCenter: { x: number; y: number } | null = null
   private pinchViewportState: ViewportState | null = null
 
-  constructor(options: VanillaCanvasOptions) {
+  constructor(options: AdrawCanvasOptions) {
     this.container = options.container
     this.canvas = new Canvas({
       initialViewport: options.initialViewport,

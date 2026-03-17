@@ -1,6 +1,6 @@
 import "./index.css"
 import type { ToolType } from "@adraw/core"
-import { VanillaCanvas } from "@adraw/vanilla"
+import { AdrawCanvas } from "@adraw/vanilla"
 
 // biome-ignore lint/style/noNonNullAssertion: root element
 const container = document.querySelector<HTMLDivElement>("#app")!
@@ -31,7 +31,7 @@ canvasContainer.style.cssText = "width: 100%; height: calc(100vh - 50px);"
 container.appendChild(toolbar)
 container.appendChild(canvasContainer)
 
-const vanilla = new VanillaCanvas({
+const vanilla = new AdrawCanvas({
   container: canvasContainer,
 })
 

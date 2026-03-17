@@ -6,7 +6,7 @@ import {
   type ToolType,
   type ViewportState,
 } from "@adraw/core"
-import { VanillaCanvas } from "@adraw/vanilla"
+import { AdrawCanvas } from "@adraw/vanilla"
 import { h, onMounted, onUnmounted, reactive, ref, type VNode } from "vue"
 
 export interface CanvasVueOptions extends CanvasOptions {
@@ -22,7 +22,7 @@ export interface CanvasState {
 
 export function createCanvas(options?: CanvasVueOptions) {
   const core = new CoreCanvas(options)
-  const vanilla = ref<VanillaCanvas | null>(null)
+  const vanilla = ref<AdrawCanvas | null>(null)
 
   const state = reactive<CanvasState>({
     elements: core.getElements(),
@@ -129,7 +129,7 @@ export const Canvas = {
     onMounted(() => {
       if (!containerRef.value) return
 
-      const vanilla = new VanillaCanvas({
+      const vanilla = new AdrawCanvas({
         container: containerRef.value,
       })
 

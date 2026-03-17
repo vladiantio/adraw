@@ -6,7 +6,7 @@ import {
   type ToolType,
   type ViewportState,
 } from "@adraw/core"
-import { VanillaCanvas } from "@adraw/vanilla"
+import { AdrawCanvas } from "@adraw/vanilla"
 import { onDestroy, onMount } from "svelte"
 
 export interface CanvasSvelteOptions extends CanvasOptions {
@@ -117,14 +117,14 @@ export interface CanvasProps {
 
 export function Canvas(props: CanvasProps) {
   let container: HTMLDivElement | undefined = undefined
-  let vanilla: VanillaCanvas | undefined = undefined
+  let vanilla: AdrawCanvas | undefined = undefined
   let canvasData: ReturnType<typeof createCanvas> | undefined = undefined
 
   onMount(() => {
     canvasData = createCanvas()
     ;(window as any).__adrawSvelteCanvas = canvasData
 
-    vanilla = new VanillaCanvas({
+    vanilla = new AdrawCanvas({
       container: container!,
     })
     vanilla.render()

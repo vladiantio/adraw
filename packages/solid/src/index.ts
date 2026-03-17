@@ -6,7 +6,7 @@ import {
   type ToolType,
   type ViewportState,
 } from "@adraw/core"
-import { VanillaCanvas } from "@adraw/vanilla"
+import { AdrawCanvas } from "@adraw/vanilla"
 import { createSignal } from "solid-js"
 
 export interface CanvasSolidOptions extends CanvasOptions {
@@ -119,7 +119,7 @@ export function useSelection() {
 
 export function initCanvas(container: HTMLElement) {
   globalCanvas = createCanvas()
-  const vanilla = new VanillaCanvas({ container })
+  const vanilla = new AdrawCanvas({ container })
   vanilla.render()
   return vanilla
 }

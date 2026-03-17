@@ -8,7 +8,7 @@ import type {
   ToolType,
   ViewportState,
 } from "@adraw/core"
-import { VanillaCanvas } from "@adraw/vanilla"
+import { AdrawCanvas } from "@adraw/vanilla"
 import React, {
   createContext,
   type ReactNode,
@@ -23,7 +23,7 @@ import React, {
 export interface CanvasReactOptions extends CanvasOptions {}
 
 interface CanvasContextValue {
-  vanillaRef: React.RefObject<VanillaCanvas | null>
+  vanillaRef: React.RefObject<AdrawCanvas | null>
   elements: Map<ElementId, CanvasElement>
   setElements: React.Dispatch<React.SetStateAction<Map<string, CanvasElement>>>
   viewport: ViewportState
@@ -52,7 +52,7 @@ export function CanvasProvider({
   const [options, setOptions] = useState<CanvasReactOptions | undefined>(
     defaultOptions,
   )
-  const vanillaRef = useRef<VanillaCanvas | null>(null)
+  const vanillaRef = useRef<AdrawCanvas | null>(null)
   const [elements, setElements] = useState<Map<ElementId, CanvasElement>>(
     new Map(),
   )
@@ -209,7 +209,7 @@ export function Canvas({ className, style }: CanvasProps) {
   useEffect(() => {
     if (!containerRef.current) return
 
-    const vanilla = new VanillaCanvas({
+    const vanilla = new AdrawCanvas({
       container: containerRef.current,
       initialViewport: options?.initialViewport,
       snapping: options?.snapping,
