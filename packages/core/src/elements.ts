@@ -105,6 +105,10 @@ export function resizeElement(
     | "top-right"
     | "bottom-left"
     | "bottom-right"
+    | "top-center"
+    | "bottom-center"
+    | "left-center"
+    | "right-center"
     | "center" = "top-left",
 ): CanvasElement {
   let x = element.x
@@ -120,6 +124,20 @@ export function resizeElement(
     case "bottom-right":
       x = element.x + element.width - width
       y = element.y + element.height - height
+      break
+    case "top-center":
+      x = element.x + (element.width - width) / 2
+      break
+    case "bottom-center":
+      x = element.x + (element.width - width) / 2
+      y = element.y + element.height - height
+      break
+    case "left-center":
+      y = element.y + (element.height - height) / 2
+      break
+    case "right-center":
+      x = element.x + element.width - width
+      y = element.y + (element.height - height) / 2
       break
     case "center":
       x = element.x + (element.width - width) / 2
@@ -148,8 +166,21 @@ export function rotateElement(
 
 export function getElementsBounds(
   elements: Map<ElementId, CanvasElement>,
-): { left: number; right: number; top: number; bottom: number } | null {
-  const elementArray = Array.from(elements.values()).filter((el) => el.visible)
+  ids?: Set<ElementId>,
+): {
+  left: number
+  right: number
+  top: number
+  bottom: number
+  x: number
+  y: number
+  width: number
+  height: number
+} | null {
+  let elementArray = Array.from(elements.values()).filter((el) => el.visible)
+  if (ids) {
+    elementArray = elementArray.filter((el) => ids.has(el.id))
+  }
 
   if (elementArray.length === 0) {
     return null
@@ -167,7 +198,16 @@ export function getElementsBounds(
     bottom = Math.max(bottom, element.y + element.height)
   }
 
-  return { left, right, top, bottom }
+  return {
+    left,
+    right,
+    top,
+    bottom,
+    x: left,
+    y: top,
+    width: right - left,
+    height: bottom - top,
+  }
 }
 
 export function getElementAtPoint(

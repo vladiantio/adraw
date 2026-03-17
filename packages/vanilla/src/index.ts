@@ -4,7 +4,7 @@ import type {
   ToolType,
   ViewportState,
 } from "@adraw/core"
-import { Canvas, panViewport } from "@adraw/core"
+import { Canvas, getElementsBounds, panViewport } from "@adraw/core"
 import { createElementGroup } from "./utils"
 
 export interface AdrawCanvasOptions extends CanvasOptions {
@@ -20,6 +20,7 @@ export class AdrawCanvas {
   private elementsGroup: SVGGElement | null = null
   private temporaryGroup: SVGGElement | null = null
   private guidesGroup: SVGGElement | null = null
+  private transformOverlay: SVGGElement | null = null
   private resizeObserver: ResizeObserver | null = null
 
   // Touch gesture state
@@ -67,9 +68,16 @@ export class AdrawCanvas {
     )
     this.guidesGroup.setAttribute("class", "adraw-guides")
 
+    this.transformOverlay = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "g",
+    )
+    this.transformOverlay.setAttribute("class", "adraw-transform-overlay")
+
     this.svgElement.appendChild(this.elementsGroup)
     this.svgElement.appendChild(this.temporaryGroup)
     this.svgElement.appendChild(this.guidesGroup)
+    this.svgElement.appendChild(this.transformOverlay)
     this.container.appendChild(this.svgElement)
 
     this.resizeObserver = new ResizeObserver((entries) => {
@@ -95,25 +103,50 @@ export class AdrawCanvas {
   }
 
   private setupEventListeners(): void {
-    this.svgElement?.addEventListener("pointerdown", (event) => {
+    if (!this.svgElement) return
+
+    this.svgElement.addEventListener("pointerdown", (event) => {
       const { x, y } = this.getRelativePoint(event)
       this.canvas.handlePointerDown(x, y, event)
       this.render()
     })
 
-    this.svgElement?.addEventListener("pointermove", (event) => {
+    this.svgElement.addEventListener("pointermove", (event) => {
       const { x, y } = this.getRelativePoint(event)
       this.canvas.handlePointerMove(x, y, event)
       this.render()
     })
 
-    this.svgElement?.addEventListener("pointerup", (event) => {
+    this.svgElement.addEventListener("pointerup", (event) => {
       const { x, y } = this.getRelativePoint(event)
       this.canvas.handlePointerUp(x, y, event)
       this.render()
     })
 
-    this.svgElement?.addEventListener(
+    // Set cursor based on hovered handle
+    this.svgElement.addEventListener("pointermove", (event) => {
+      if (!this.svgElement) return
+      const target = event.target as HTMLElement
+      const anchor = target.getAttribute("data-anchor")
+      const cursorMap: Record<string, string> = {
+        "top-left": "nw-resize",
+        "top-right": "ne-resize",
+        "bottom-left": "sw-resize",
+        "bottom-right": "se-resize",
+        "top-center": "n-resize",
+        "bottom-center": "s-resize",
+        "left-center": "w-resize",
+        "right-center": "e-resize",
+        rotation: "crosshair",
+      }
+      if (anchor && cursorMap[anchor]) {
+        this.svgElement.style.cursor = cursorMap[anchor]
+      } else if (!this.svgElement.style.cursor.startsWith("grab")) {
+        this.svgElement.style.cursor = "default"
+      }
+    })
+
+    this.svgElement.addEventListener(
       "wheel",
       (event) => {
         const { x, y } = this.getRelativePoint(event)
@@ -123,7 +156,7 @@ export class AdrawCanvas {
       { passive: false },
     )
 
-    this.svgElement?.addEventListener(
+    this.svgElement.addEventListener(
       "touchstart",
       (event) => {
         if (event.touches.length === 2) {
@@ -153,7 +186,7 @@ export class AdrawCanvas {
       { passive: false },
     )
 
-    this.svgElement?.addEventListener(
+    this.svgElement.addEventListener(
       "touchmove",
       (event) => {
         if (
@@ -230,11 +263,11 @@ export class AdrawCanvas {
       { passive: false },
     )
 
-    this.svgElement?.addEventListener("touchend", (event) => {
+    this.svgElement.addEventListener("touchend", (event) => {
       this.handleTouchEnd(event)
     })
 
-    this.svgElement?.addEventListener("touchcancel", (event) => {
+    this.svgElement.addEventListener("touchcancel", (event) => {
       this.handleTouchEnd(event)
     })
 
@@ -306,7 +339,101 @@ export class AdrawCanvas {
         `translate(${this.container.clientWidth / 2}, ${this.container.clientHeight / 2}) scale(${viewport.zoom}) translate(${-viewport.x}, ${-viewport.y})`,
       )
 
+    if (this.transformOverlay)
+      this.transformOverlay.setAttribute(
+        "transform",
+        `translate(${this.container.clientWidth / 2}, ${this.container.clientHeight / 2}) scale(${viewport.zoom}) translate(${-viewport.x}, ${-viewport.y})`,
+      )
+
     this.renderTemporary()
+    this.renderTransformOverlay()
+  }
+
+  private renderTransformOverlay(): void {
+    if (!this.transformOverlay) return
+
+    this.transformOverlay.innerHTML = ""
+    const selectedIds = this.canvas.getSelectedIds()
+    const elements = this.canvas.getElements()
+
+    if (selectedIds.size === 0) return
+
+    const bounds = getElementsBounds(elements, selectedIds)
+    if (!bounds) return
+
+    const { x, y, width, height } = bounds
+
+    // Main bounding box
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+    rect.setAttribute("x", String(x))
+    rect.setAttribute("y", String(y))
+    rect.setAttribute("width", String(width))
+    rect.setAttribute("height", String(height))
+    rect.setAttribute("fill", "none")
+    rect.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
+    rect.setAttribute("stroke-width", "2")
+    rect.setAttribute("stroke-dasharray", "5,5")
+    this.transformOverlay.appendChild(rect)
+
+    // Handle positions
+    const handles = [
+      { x: x, y: y, anchor: "top-left" },
+      { x: x + width / 2, y: y, anchor: "top-center" },
+      { x: x + width, y: y, anchor: "top-right" },
+      { x: x + width, y: y + height / 2, anchor: "right-center" },
+      { x: x + width, y: y + height, anchor: "bottom-right" },
+      { x: x + width / 2, y: y + height, anchor: "bottom-center" },
+      { x: x, y: y + height, anchor: "bottom-left" },
+      { x: x, y: y + height / 2, anchor: "left-center" },
+    ]
+
+    // Rotation handle
+    const rotationHandleY = y - 30
+    const rotationHandle = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle",
+    )
+    rotationHandle.setAttribute("cx", String(x + width / 2))
+    rotationHandle.setAttribute("cy", String(rotationHandleY))
+    rotationHandle.setAttribute("r", "6")
+    rotationHandle.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
+    rotationHandle.setAttribute("stroke", "#ffffff")
+    rotationHandle.setAttribute("stroke-width", "2")
+    rotationHandle.setAttribute("class", "adraw-rotation-handle")
+    rotationHandle.setAttribute("data-anchor", "rotation")
+    this.transformOverlay.appendChild(rotationHandle)
+
+    // Connecting line for rotation handle
+    const rotationLine = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line",
+    )
+    rotationLine.setAttribute("x1", String(x + width / 2))
+    rotationLine.setAttribute("y1", String(y))
+    rotationLine.setAttribute("x2", String(x + width / 2))
+    rotationLine.setAttribute("y2", String(rotationHandleY + 6))
+    rotationLine.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
+    rotationLine.setAttribute("stroke-width", "2")
+    this.transformOverlay.appendChild(rotationLine)
+
+    // Resize handles
+    for (const handle of handles) {
+      const circle = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "rect",
+      )
+      const size = 8
+      circle.setAttribute("x", String(handle.x - size / 2))
+      circle.setAttribute("y", String(handle.y - size / 2))
+      circle.setAttribute("width", String(size))
+      circle.setAttribute("height", String(size))
+      circle.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
+      circle.setAttribute("stroke", "#ffffff")
+      circle.setAttribute("stroke-width", "2")
+      circle.setAttribute("class", "adraw-resize-handle")
+      circle.setAttribute("data-anchor", handle.anchor)
+      this.transformOverlay.appendChild(circle)
+    }
   }
 
   private renderElements(): void {
