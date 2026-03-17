@@ -82,7 +82,10 @@ export class VanillaCanvas {
     this.resizeObserver.observe(this.container)
   }
 
-  private getRelativePoint(event: MouseEvent | PointerEvent | WheelEvent): { x: number; y: number } {
+  private getRelativePoint(event: MouseEvent | PointerEvent | WheelEvent): {
+    x: number
+    y: number
+  } {
     if (!this.svgElement) return { x: event.clientX, y: event.clientY }
     const rect = this.svgElement.getBoundingClientRect()
     return {
@@ -279,7 +282,6 @@ export class VanillaCanvas {
       eraser: "crosshair",
       rectangle: "crosshair",
       ellipse: "crosshair",
-      star: "crosshair",
       media: "copy",
     }
     if (this.svgElement)
@@ -378,26 +380,6 @@ export class VanillaCanvas {
         break
       }
 
-      case "star": {
-        const starPoints = this.calculateStarPoints(
-          element.width / 2,
-          element.height / 2,
-          element.points,
-          element.innerRadius,
-          element.outerRadius,
-        )
-        const star = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "polygon",
-        )
-        star.setAttribute("points", starPoints)
-        star.setAttribute("fill", "var(--adraw-fill-color, #ffffff)")
-        star.setAttribute("stroke", "var(--adraw-stroke-color, #000000)")
-        star.setAttribute("stroke-width", "2")
-        group.appendChild(star)
-        break
-      }
-
       case "path": {
         const pathData = this.pointsToPath(element.points)
         const path = document.createElementNS(
@@ -427,27 +409,6 @@ export class VanillaCanvas {
     }
 
     return group
-  }
-
-  private calculateStarPoints(
-    cx: number,
-    cy: number,
-    points: number,
-    innerRadius: number,
-    outerRadius: number,
-  ): string {
-    const result: string[] = []
-    const step = Math.PI / points
-
-    for (let i = 0; i < 2 * points; i++) {
-      const radius = i % 2 === 0 ? outerRadius : innerRadius
-      const angle = i * step - Math.PI / 2
-      const x = cx + radius * Math.cos(angle)
-      const y = cy + radius * Math.sin(angle)
-      result.push(`${x},${y}`)
-    }
-
-    return result.join(" ")
   }
 
   private pointsToPath(points: { x: number; y: number }[]): string {

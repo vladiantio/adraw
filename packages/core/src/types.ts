@@ -90,7 +90,6 @@ export type ToolType =
   | "eraser"
   | "rectangle"
   | "ellipse"
-  | "star"
   | "media"
 
 export interface ViewportState {

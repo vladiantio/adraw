@@ -12,7 +12,6 @@ toolbar.innerHTML = `
   <button data-tool="hand" title="Hand (H)">Hand</button>
   <button data-tool="rectangle" title="Rectangle (R)">Rectangle</button>
   <button data-tool="ellipse" title="Ellipse (E)">Ellipse</button>
-  <button data-tool="star" title="Star (S)">Star</button>
   <button data-tool="draw" title="Draw (D)">Draw</button>
   <button data-tool="eraser" title="Eraser (E)">Eraser</button>
   <div class="separator"></div>

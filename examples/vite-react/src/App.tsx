@@ -17,7 +17,6 @@ function Toolbar() {
     { id: "hand", label: "Hand", shortcut: "H" },
     { id: "rectangle", label: "Rectangle", shortcut: "R" },
     { id: "ellipse", label: "Ellipse", shortcut: "E" },
-    { id: "star", label: "Star", shortcut: "S" },
     { id: "draw", label: "Draw", shortcut: "D" },
     { id: "eraser", label: "Eraser", shortcut: "E" },
   ]

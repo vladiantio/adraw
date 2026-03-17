@@ -1,5 +1,5 @@
-import { screenToCanvas } from "./coordinates.js"
-import { getElementsBounds } from "./elements.js"
+import { screenToCanvas } from "./coordinates"
+import { getElementsBounds } from "./elements"
 import {
   canRedo,
   canUndo,
@@ -7,9 +7,9 @@ import {
   pushHistory,
   redo,
   undo,
-} from "./history.js"
-import { createSnappingConfig, type SnappingConfig } from "./snapping.js"
-import type { Tool, ToolContext } from "./tools/base.js"
+} from "./history"
+import { createSnappingConfig, type SnappingConfig } from "./snapping"
+import type { Tool, ToolContext } from "./tools/base"
 import {
   createDrawTool,
   createEllipseTool,
@@ -18,20 +18,14 @@ import {
   createMediaTool,
   createRectangleTool,
   createSelectTool,
-  createStarTool,
-} from "./tools/index.js"
-import type {
-  CanvasElement,
-  ElementId,
-  ToolType,
-  ViewportState,
-} from "./types.js"
+} from "./tools"
+import type { CanvasElement, ElementId, ToolType, ViewportState } from "./types"
 import {
   createViewport,
   panViewport,
   resetViewport,
   zoomViewport,
-} from "./viewport.js"
+} from "./viewport"
 
 export interface CanvasOptions {
   snapping?: Partial<SnappingConfig>
@@ -73,7 +67,6 @@ export class Canvas {
     this.tools.set("hand", createHandTool())
     this.tools.set("rectangle", createRectangleTool())
     this.tools.set("ellipse", createEllipseTool())
-    this.tools.set("star", createStarTool())
     this.tools.set("draw", createDrawTool())
     this.tools.set("eraser", createEraserTool())
     this.tools.set("media", createMediaTool())
@@ -297,9 +290,6 @@ export class Canvas {
           break
         case "r":
           this.setActiveTool("rectangle")
-          break
-        case "s":
-          this.setActiveTool("star")
           break
         case "m":
           this.setActiveTool("media")
