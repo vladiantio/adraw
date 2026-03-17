@@ -17,7 +17,7 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
   group.setAttribute("data-id", element.id)
   group.setAttribute(
     "transform",
-    `translate(${element.x}, ${element.y}) rotate(${element.rotation})`,
+    `translate(${element.x}, ${element.y}) rotate(${element.rotation}, ${element.width / 2}, ${element.height / 2})`,
   )
 
   switch (element.type) {
