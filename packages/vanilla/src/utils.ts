@@ -1,12 +1,12 @@
 import type { CanvasElement, Point } from "@adraw/core"
 
-export function pointsToPath(points: Point[]): string {
+export function pointsToPath(points: Point[], x: number, y: number): string {
   if (points.length === 0) return ""
 
-  let d = `M ${points[0].x} ${points[0].y}`
+  let d = `M ${points[0].x - x} ${points[0].y - y}`
 
   for (let i = 1; i < points.length; i++) {
-    d += ` L ${points[i].x} ${points[i].y}`
+    d += ` L ${points[i].x - x} ${points[i].y - y}`
   }
 
   return d
@@ -53,7 +53,7 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
     }
 
     case "path": {
-      const pathData = pointsToPath(element.points)
+      const pathData = pointsToPath(element.points, element.x, element.y)
       const path = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "path",
