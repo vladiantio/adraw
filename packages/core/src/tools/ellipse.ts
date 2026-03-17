@@ -3,9 +3,7 @@ import type { EllipseElement, Point, ToolType } from "../types"
 import type { Tool, ToolContext, ToolState } from "./base"
 import { calculateBounds, createBaseToolState } from "./base"
 
-export type EllipseToolOptions = {}
-
-export function createEllipseTool(_options: EllipseToolOptions = {}): Tool {
+export function createEllipseTool(): Tool {
   const state: ToolState = createBaseToolState()
   let temporaryElement: EllipseElement | null = null
 
