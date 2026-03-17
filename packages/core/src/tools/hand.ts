@@ -5,7 +5,6 @@ import { createBaseToolState } from "./base.js"
 
 export function createHandTool(): Tool {
   const state: ToolState = createBaseToolState()
-  let lastPoint: Point | null = null
 
   return {
     type: "hand" as ToolType,
@@ -19,38 +18,32 @@ export function createHandTool(): Tool {
       state.isActive = false
       state.startPoint = null
       state.currentPoint = null
-      lastPoint = null
     },
 
     onPointerDown(_context: ToolContext, point: Point, _event: PointerEvent) {
       state.startPoint = point
       state.currentPoint = point
-      lastPoint = point
     },
 
-    onPointerMove(context: ToolContext, point: Point, _event: PointerEvent) {
-      if (!lastPoint || !state.isActive) {
+    onPointerMove(context: ToolContext, _point: Point, event: PointerEvent) {
+      if (state.currentPoint === null || !state.isActive) {
         return
       }
 
-      state.currentPoint = point
-
       const delta = {
-        x: point.x - lastPoint.x,
-        y: point.y - lastPoint.y,
+        x: -event.movementX / context.getViewport().zoom,
+        y: -event.movementY / context.getViewport().zoom,
       }
 
       const viewport = context.getViewport()
       const newViewport = panViewport(viewport, delta)
 
       context.setViewport(newViewport)
-      lastPoint = point
     },
 
     onPointerUp(_context: ToolContext, _point: Point, _event: PointerEvent) {
       state.startPoint = null
       state.currentPoint = null
-      lastPoint = null
     },
 
     getTemporaryElement() {
