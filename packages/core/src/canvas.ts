@@ -236,17 +236,17 @@ export class Canvas {
 
       const centerPoint = {
         x:
-          (x - this.canvasSize.width / 2) / this.viewport.zoom +
+          (this.canvasSize.width / 2 - x) / this.viewport.zoom +
           this.viewport.x,
         y:
-          (y - this.canvasSize.height / 2) / this.viewport.zoom +
+          (this.canvasSize.height / 2 - y) / this.viewport.zoom +
           this.viewport.y,
       }
-      this.viewport = zoomViewport(this.viewport, -event.deltaY, centerPoint)
+      this.viewport = zoomViewport(this.viewport, event.deltaY, centerPoint)
     } else {
       this.viewport = panViewport(this.viewport, {
-        x: -event.deltaX / this.viewport.zoom,
-        y: -event.deltaY / this.viewport.zoom,
+        x: event.deltaX / this.viewport.zoom,
+        y: event.deltaY / this.viewport.zoom,
       })
     }
 
