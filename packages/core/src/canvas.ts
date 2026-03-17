@@ -9,7 +9,6 @@ import {
   undo,
 } from "./history"
 import { createSnappingConfig, type SnappingConfig } from "./snapping"
-import type { Tool, ToolContext } from "./tools/base"
 import {
   createDrawTool,
   createEllipseTool,
@@ -19,6 +18,7 @@ import {
   createRectangleTool,
   createSelectTool,
 } from "./tools"
+import type { Tool, ToolContext } from "./tools/base"
 import type { CanvasElement, ElementId, ToolType, ViewportState } from "./types"
 import {
   createViewport,
