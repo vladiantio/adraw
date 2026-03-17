@@ -1,7 +1,7 @@
-import { createPath } from "../elements.js"
-import type { PathElement, Point, ToolType } from "../types.js"
-import type { Tool, ToolContext, ToolOptions, ToolState } from "./base.js"
-import { createBaseToolState, getDefaultToolOptions } from "./base.js"
+import { createPath } from "../elements"
+import type { PathElement, Point, ToolType } from "../types"
+import type { Tool, ToolContext, ToolOptions, ToolState } from "./base"
+import { createBaseToolState, getDefaultToolOptions } from "./base"
 
 export interface DrawToolOptions extends ToolOptions {
   smoothing?: number

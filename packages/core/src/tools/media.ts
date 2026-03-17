@@ -1,7 +1,7 @@
-import { createMedia } from "../elements.js"
-import type { Point, ToolType } from "../types.js"
-import type { Tool, ToolContext, ToolState } from "./base.js"
-import { createBaseToolState } from "./base.js"
+import { createMedia } from "../elements"
+import type { Point, ToolType } from "../types"
+import type { Tool, ToolContext, ToolState } from "./base"
+import { createBaseToolState } from "./base"
 
 export interface MediaToolOptions {
   maxWidth?: number

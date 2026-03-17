@@ -4,7 +4,7 @@ import type {
   Point,
   ToolType,
   ViewportState,
-} from "../types.js"
+} from "../types"
 
 export interface ToolContext {
   getElements: () => Map<ElementId, CanvasElement>

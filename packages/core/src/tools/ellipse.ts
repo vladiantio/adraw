@@ -1,7 +1,7 @@
-import { createEllipse } from "../elements.js"
-import type { EllipseElement, Point, ToolType } from "../types.js"
-import type { Tool, ToolContext, ToolState } from "./base.js"
-import { calculateBounds, createBaseToolState } from "./base.js"
+import { createEllipse } from "../elements"
+import type { EllipseElement, Point, ToolType } from "../types"
+import type { Tool, ToolContext, ToolState } from "./base"
+import { calculateBounds, createBaseToolState } from "./base"
 
 export type EllipseToolOptions = {}
 

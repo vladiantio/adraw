@@ -1,4 +1,4 @@
-import { generateId } from "./coordinates.js"
+import { generateId } from "./coordinates"
 import type {
   CanvasElement,
   ElementId,
@@ -9,7 +9,7 @@ import type {
   Point,
   RectangleElement,
   StarElement,
-} from "./types.js"
+} from "./types"
 
 export type ElementFactory<T extends CanvasElement> = Omit<T, "id" | "type"> & {
   id?: string

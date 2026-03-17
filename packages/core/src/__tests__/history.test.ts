@@ -6,8 +6,8 @@ import {
   pushHistory,
   redo,
   undo,
-} from "../history.js"
-import type { CanvasElement, ElementId } from "../types.js"
+} from "../history"
+import type { CanvasElement, ElementId } from "../types"
 
 describe("history", () => {
   let elements: Map<ElementId, CanvasElement>

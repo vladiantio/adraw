@@ -1,4 +1,4 @@
-import type { CanvasElement, ElementId } from "./types.js"
+import type { CanvasElement, ElementId } from "./types"
 
 export interface HistoryEntry {
   elements: Map<ElementId, CanvasElement>

@@ -1,7 +1,7 @@
-import type { Point, ToolType } from "../types.js"
-import { panViewport } from "../viewport.js"
-import type { Tool, ToolContext, ToolState } from "./base.js"
-import { createBaseToolState } from "./base.js"
+import type { Point, ToolType } from "../types"
+import { panViewport } from "../viewport"
+import type { Tool, ToolContext, ToolState } from "./base"
+import { createBaseToolState } from "./base"
 
 export function createHandTool(): Tool {
   const state: ToolState = createBaseToolState()

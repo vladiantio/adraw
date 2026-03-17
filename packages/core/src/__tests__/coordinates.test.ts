@@ -7,7 +7,7 @@ import {
   getElementBounds,
   pointInBounds,
   screenToCanvas,
-} from "../coordinates.js"
+} from "../coordinates"
 
 describe("coordinates", () => {
   describe("screenToCanvas", () => {

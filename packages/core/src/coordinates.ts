@@ -1,4 +1,4 @@
-import type { Point, Size, ViewportState } from "./types.js"
+import type { Point, Size, ViewportState } from "./types"
 
 export function screenToCanvas(
   screenPoint: Point,

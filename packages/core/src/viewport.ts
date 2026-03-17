@@ -1,5 +1,5 @@
-import { clamp } from "./coordinates.js"
-import type { Point, ViewportState } from "./types.js"
+import { clamp } from "./coordinates"
+import type { Point, ViewportState } from "./types"
 
 export interface ViewportConfig {
   minZoom: number

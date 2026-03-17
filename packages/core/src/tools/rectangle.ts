@@ -1,11 +1,11 @@
-import { createRectangle } from "../elements.js"
-import type { Point, RectangleElement, ToolType } from "../types.js"
-import type { Tool, ToolContext, ToolOptions, ToolState } from "./base.js"
+import { createRectangle } from "../elements"
+import type { Point, RectangleElement, ToolType } from "../types"
+import type { Tool, ToolContext, ToolOptions, ToolState } from "./base"
 import {
   calculateBounds,
   createBaseToolState,
   getDefaultToolOptions,
-} from "./base.js"
+} from "./base"
 
 export interface RectangleToolOptions extends ToolOptions {
   cornerRadius?: number

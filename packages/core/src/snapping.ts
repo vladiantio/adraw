@@ -4,7 +4,7 @@ import type {
   Point,
   SnapGuide,
   SnapResult,
-} from "./types.js"
+} from "./types"
 
 export interface SnappingConfig {
   enabled: boolean
