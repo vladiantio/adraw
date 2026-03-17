@@ -5,6 +5,7 @@ import { createBaseToolState } from "./base.js"
 
 export function createHandTool(): Tool {
   const state: ToolState = createBaseToolState()
+  let lastPoint: Point | null = null
 
   return {
     type: "hand" as ToolType,
@@ -18,32 +19,54 @@ export function createHandTool(): Tool {
       state.isActive = false
       state.startPoint = null
       state.currentPoint = null
+      lastPoint = null
     },
 
-    onPointerDown(_context: ToolContext, point: Point, _event: PointerEvent) {
+    onPointerDown(_context: ToolContext, point: Point, event: PointerEvent) {
       state.startPoint = point
       state.currentPoint = point
+      lastPoint = { x: event.clientX, y: event.clientY }
     },
 
-    onPointerMove(context: ToolContext, _point: Point, event: PointerEvent) {
-      if (state.currentPoint === null || !state.isActive) {
-        return
-      }
+    onPointerMove(context: ToolContext, point: Point, event: PointerEvent) {
+      if (lastPoint === null || !state.isActive) return
 
-      const delta = {
-        x: -event.movementX / context.getViewport().zoom,
-        y: -event.movementY / context.getViewport().zoom,
-      }
+      const movementX =
+        event.movementX !== undefined &&
+        event.movementX !== 0 &&
+        !Number.isNaN(event.movementX)
+          ? event.movementX
+          : lastPoint
+            ? event.clientX - lastPoint.x || 0
+            : null
+      const movementY =
+        event.movementY !== undefined &&
+        event.movementY !== 0 &&
+        !Number.isNaN(event.movementY)
+          ? event.movementY
+          : lastPoint
+            ? event.clientY - lastPoint.y || 0
+            : null
+
+      if (!movementX || !movementY) return
 
       const viewport = context.getViewport()
+      const delta = {
+        x: -movementX / viewport.zoom,
+        y: -movementY / viewport.zoom,
+      }
+
       const newViewport = panViewport(viewport, delta)
 
       context.setViewport(newViewport)
+      state.currentPoint = point
+      lastPoint = { x: event.clientX, y: event.clientY }
     },
 
     onPointerUp(_context: ToolContext, _point: Point, _event: PointerEvent) {
       state.startPoint = null
       state.currentPoint = null
+      lastPoint = null
     },
 
     getTemporaryElement() {
