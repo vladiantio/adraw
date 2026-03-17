@@ -1,5 +1,5 @@
 {
-  "name": "docs",
+  "name": "web",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -9,6 +9,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/mdx": "^5.0.1",
     "@fontsource-variable/outfit": "^5.2.8",
     "@tailwindcss/vite": "^4.2.1",
     "astro": "5.16.11",
