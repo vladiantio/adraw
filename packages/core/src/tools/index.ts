@@ -1,5 +1,5 @@
 export { createDrawTool, type DrawToolOptions } from "./draw"
-export { createEllipseTool, type EllipseToolOptions } from "./ellipse"
+export { createEllipseTool } from "./ellipse"
 export { createEraserTool } from "./eraser"
 export { createHandTool } from "./hand"
 export {
