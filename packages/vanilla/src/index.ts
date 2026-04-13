@@ -8,6 +8,17 @@ import type {
 } from "@adraw/core"
 import { Canvas, getElementsBounds, panViewport } from "@adraw/core"
 
+const svgNamespaceURI = "http://www.w3.org/2000/svg"
+const elementsGroupClass = "adraw-elements-group"
+const elementClass = "adraw-element"
+const temporaryGroupClass = "adraw-temporary-group"
+const temporaryClass = "adraw-temporary"
+const guidesGroupClass = "adraw-guides-group"
+const selectedClass = "adraw-selected"
+const transformOverlayClass = "adraw-transform-overlay"
+const rotationHandleClass = "adraw-rotation-handle"
+const resizeHandleClass = "adraw-resize-handle"
+
 export function pointsToPath(points: Point[], x: number, y: number): string {
   if (points.length === 0) return ""
 
@@ -21,7 +32,7 @@ export function pointsToPath(points: Point[], x: number, y: number): string {
 }
 
 export function createElementGroup(element: CanvasElement): SVGGElement {
-  const group = document.createElementNS("http://www.w3.org/2000/svg", "g")
+  const group = document.createElementNS(svgNamespaceURI, "g")
   group.setAttribute("data-id", element.id)
   group.setAttribute(
     "transform",
@@ -30,10 +41,7 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
 
   switch (element.type) {
     case "rectangle": {
-      const rect = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "rect",
-      )
+      const rect = document.createElementNS(svgNamespaceURI, "rect")
       rect.setAttribute("width", String(element.width))
       rect.setAttribute("height", String(element.height))
       rect.setAttribute("rx", String(element.cornerRadius))
@@ -45,10 +53,7 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
     }
 
     case "ellipse": {
-      const ellipse = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "ellipse",
-      )
+      const ellipse = document.createElementNS(svgNamespaceURI, "ellipse")
       ellipse.setAttribute("cx", String(element.width / 2))
       ellipse.setAttribute("cy", String(element.height / 2))
       ellipse.setAttribute("rx", String(element.width / 2))
@@ -62,10 +67,7 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
 
     case "path": {
       const pathData = pointsToPath(element.points, element.x, element.y)
-      const path = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "path",
-      )
+      const path = document.createElementNS(svgNamespaceURI, "path")
       path.setAttribute("d", pathData)
       path.setAttribute("fill", element.fillColor || "none")
       path.setAttribute("stroke", element.strokeColor || "#000000")
@@ -75,10 +77,7 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
     }
 
     case "media": {
-      const image = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "image",
-      )
+      const image = document.createElementNS(svgNamespaceURI, "image")
       image.setAttribute("href", element.src)
       image.setAttribute("width", String(element.width))
       image.setAttribute("height", String(element.height))
@@ -124,39 +123,24 @@ export class AdrawCanvas {
   }
 
   private init(): void {
-    this.svgElement = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "svg",
-    )
+    this.svgElement = document.createElementNS(svgNamespaceURI, "svg")
     this.svgElement.setAttribute("width", "100%")
     this.svgElement.setAttribute("height", "100%")
     this.svgElement.style.display = "block"
     this.svgElement.style.background = "var(--adraw-background, #ffffff)"
     this.svgElement.style.touchAction = "none"
 
-    this.elementsGroup = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    )
-    this.elementsGroup.setAttribute("class", "adraw-elements")
+    this.elementsGroup = document.createElementNS(svgNamespaceURI, "g")
+    this.elementsGroup.classList.add(elementsGroupClass)
 
-    this.temporaryGroup = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    )
-    this.temporaryGroup.setAttribute("class", "adraw-temporary")
+    this.temporaryGroup = document.createElementNS(svgNamespaceURI, "g")
+    this.temporaryGroup.classList.add(temporaryGroupClass)
 
-    this.guidesGroup = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    )
-    this.guidesGroup.setAttribute("class", "adraw-guides")
+    this.guidesGroup = document.createElementNS(svgNamespaceURI, "g")
+    this.guidesGroup.classList.add(guidesGroupClass)
 
-    this.transformOverlay = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    )
-    this.transformOverlay.setAttribute("class", "adraw-transform-overlay")
+    this.transformOverlay = document.createElementNS(svgNamespaceURI, "g")
+    this.transformOverlay.classList.add(transformOverlayClass)
 
     this.svgElement.appendChild(this.elementsGroup)
     this.svgElement.appendChild(this.temporaryGroup)
@@ -448,7 +432,7 @@ export class AdrawCanvas {
     const { x, y, width, height } = bounds
 
     // Main bounding box
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+    const rect = document.createElementNS(svgNamespaceURI, "rect")
     rect.setAttribute("x", String(x))
     rect.setAttribute("y", String(y))
     rect.setAttribute("width", String(width))
@@ -473,25 +457,19 @@ export class AdrawCanvas {
 
     // Rotation handle
     const rotationHandleY = y - 30
-    const rotationHandle = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle",
-    )
+    const rotationHandle = document.createElementNS(svgNamespaceURI, "circle")
+    rotationHandle.classList.add(rotationHandleClass)
     rotationHandle.setAttribute("cx", String(x + width / 2))
     rotationHandle.setAttribute("cy", String(rotationHandleY))
     rotationHandle.setAttribute("r", "6")
     rotationHandle.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
     rotationHandle.setAttribute("stroke", "#ffffff")
     rotationHandle.setAttribute("stroke-width", "2")
-    rotationHandle.setAttribute("class", "adraw-rotation-handle")
     rotationHandle.setAttribute("data-anchor", "rotation")
     this.transformOverlay.appendChild(rotationHandle)
 
     // Connecting line for rotation handle
-    const rotationLine = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "line",
-    )
+    const rotationLine = document.createElementNS(svgNamespaceURI, "line")
     rotationLine.setAttribute("x1", String(x + width / 2))
     rotationLine.setAttribute("y1", String(y))
     rotationLine.setAttribute("x2", String(x + width / 2))
@@ -502,11 +480,9 @@ export class AdrawCanvas {
 
     // Resize handles
     for (const handle of handles) {
-      const circle = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "rect",
-      )
+      const circle = document.createElementNS(svgNamespaceURI, "rect")
       const size = 8
+      circle.classList.add(resizeHandleClass)
       circle.setAttribute("x", String(handle.x - size / 2))
       circle.setAttribute("y", String(handle.y - size / 2))
       circle.setAttribute("width", String(size))
@@ -514,7 +490,6 @@ export class AdrawCanvas {
       circle.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
       circle.setAttribute("stroke", "#ffffff")
       circle.setAttribute("stroke-width", "2")
-      circle.setAttribute("class", "adraw-resize-handle")
       circle.setAttribute("data-anchor", handle.anchor)
       this.transformOverlay.appendChild(circle)
     }
@@ -531,11 +506,9 @@ export class AdrawCanvas {
       if (!element.visible) continue
 
       const group = createElementGroup(element)
-      if (selectedIds.has(element.id)) {
-        group.setAttribute("class", "adraw-element adraw-selected")
-      } else {
-        group.setAttribute("class", "adraw-element")
-      }
+      const isSelected = selectedIds.has(element.id)
+      group.classList.add(elementClass)
+      group.classList.toggle(selectedClass, isSelected)
 
       if (this.elementsGroup) this.elementsGroup.appendChild(group)
     }
@@ -549,7 +522,7 @@ export class AdrawCanvas {
 
     if (tempElement) {
       const group = createElementGroup(tempElement)
-      group.setAttribute("class", "adraw-temporary-element")
+      group.classList.add(temporaryClass)
       if (this.temporaryGroup) this.temporaryGroup.appendChild(group)
     }
   }
