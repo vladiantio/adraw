@@ -59,7 +59,7 @@ export interface ToolOptions {
 
 export function getDefaultToolOptions(): ToolOptions {
   return {
-    strokeColor: "#000000",
+    strokeColor: "var(--adraw-stroke-color, #000)",
     fillColor: "transparent",
     strokeWidth: 2,
   }

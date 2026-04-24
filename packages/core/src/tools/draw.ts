@@ -94,7 +94,7 @@ function createPathElement(
   {
     smoothing = 0.5,
     strokeWidth = 2,
-    strokeColor = "#000000",
+    strokeColor = "var(--adraw-stroke-color, #000)",
     fillColor = "transparent",
   }: DrawToolOptions,
   factory?: Partial<ElementFactory<PathElement>>,

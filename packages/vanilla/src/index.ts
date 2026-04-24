@@ -51,8 +51,8 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
       rect.setAttribute("width", String(element.width))
       rect.setAttribute("height", String(element.height))
       rect.setAttribute("rx", String(element.cornerRadius))
-      rect.setAttribute("fill", "var(--adraw-fill-color, #ffffff)")
-      rect.setAttribute("stroke", "var(--adraw-stroke-color, #000000)")
+      rect.setAttribute("fill", "var(--adraw-fill-color, transparent)")
+      rect.setAttribute("stroke", "var(--adraw-stroke-color, #000)")
       rect.setAttribute("stroke-width", "2")
       group.appendChild(rect)
       break
@@ -64,8 +64,8 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
       ellipse.setAttribute("cy", String(element.height / 2))
       ellipse.setAttribute("rx", String(element.width / 2))
       ellipse.setAttribute("ry", String(element.height / 2))
-      ellipse.setAttribute("fill", "var(--adraw-fill-color, #ffffff)")
-      ellipse.setAttribute("stroke", "var(--adraw-stroke-color, #000000)")
+      ellipse.setAttribute("fill", "var(--adraw-fill-color, transparent)")
+      ellipse.setAttribute("stroke", "var(--adraw-stroke-color, #000)")
       ellipse.setAttribute("stroke-width", "2")
       group.appendChild(ellipse)
       break
@@ -76,7 +76,10 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
       const path = document.createElementNS(svgNamespaceURI, "path")
       path.setAttribute("d", pathData)
       path.setAttribute("fill", element.fillColor || "none")
-      path.setAttribute("stroke", element.strokeColor || "#000000")
+      path.setAttribute(
+        "stroke",
+        element.strokeColor || "var(--adraw-stroke-color, #000)",
+      )
       path.setAttribute("stroke-width", String(element.strokeWidth || 2))
       group.appendChild(path)
       break
