@@ -9,17 +9,8 @@ import "../styles/global.css";
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<title>adraw</title>
     <script>
-      const matchDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
-      const updateTheme = () => {
-        const theme = localStorage.theme || "system";
-        document.documentElement.classList.toggle(
-          "dark",
-          theme === "dark" || (theme === "system" && matchDarkScheme.matches)
-        );
-      };
+      import { updateTheme } from "@/utils/theme";
       updateTheme();
-      matchDarkScheme.addEventListener("change", updateTheme);
-      window.addEventListener("storage", updateTheme);
     </script>
 	</head>
 	<body>
