@@ -19,13 +19,22 @@ const transformOverlayClass = "adraw-transform-overlay"
 const rotationHandleClass = "adraw-rotation-handle"
 const resizeHandleClass = "adraw-resize-handle"
 
-export function pointsToPath(points: Point[], x: number, y: number): string {
+function getTransformElementAttribute(element: CanvasElement) {
+  const translate =
+    element.type !== "path"
+      ? `translate(${element.x}, ${element.y})`
+      : undefined
+  const rotate = `rotate(${element.rotation}, ${element.width / 2}, ${element.height / 2})`
+  return [translate, rotate].filter((s) => s).join(" ")
+}
+
+export function pointsToPath(points: Point[]): string {
   if (points.length === 0) return ""
 
-  let d = `M ${points[0].x - x} ${points[0].y - y}`
+  let d = `M ${points[0].x} ${points[0].y}`
 
   for (let i = 1; i < points.length; i++) {
-    d += ` L ${points[i].x - x} ${points[i].y - y}`
+    d += ` L ${points[i].x} ${points[i].y}`
   }
 
   return d
@@ -33,11 +42,8 @@ export function pointsToPath(points: Point[], x: number, y: number): string {
 
 export function createElementGroup(element: CanvasElement): SVGGElement {
   const group = document.createElementNS(svgNamespaceURI, "g")
-  group.setAttribute("data-id", element.id)
-  group.setAttribute(
-    "transform",
-    `translate(${element.x}, ${element.y}) rotate(${element.rotation}, ${element.width / 2}, ${element.height / 2})`,
-  )
+  group.id = element.id
+  group.setAttribute("transform", getTransformElementAttribute(element))
 
   switch (element.type) {
     case "rectangle": {
@@ -66,7 +72,7 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
     }
 
     case "path": {
-      const pathData = pointsToPath(element.points, element.x, element.y)
+      const pathData = pointsToPath(element.points)
       const path = document.createElementNS(svgNamespaceURI, "path")
       path.setAttribute("d", pathData)
       path.setAttribute("fill", element.fillColor || "none")
@@ -105,6 +111,9 @@ export class AdrawCanvas {
   private guidesGroup: SVGGElement | null = null
   private transformOverlay: SVGGElement | null = null
   private resizeObserver: ResizeObserver | null = null
+  // private isDragging: boolean = false
+  private deltaPoint: Point = { x: 0, y: 0 }
+  private dragStartPoint: Point = { x: 0, y: 0 }
 
   // Touch gesture state
   private pinchStartDistance: number | null = null
@@ -174,20 +183,17 @@ export class AdrawCanvas {
     if (!this.svgElement) return
 
     this.svgElement.addEventListener("pointerdown", (event) => {
-      const { x, y } = this.getRelativePoint(event)
-      this.canvas.handlePointerDown(x, y, event)
+      this.handlePointerDown(event)
       this.render()
     })
 
     this.svgElement.addEventListener("pointermove", (event) => {
-      const { x, y } = this.getRelativePoint(event)
-      this.canvas.handlePointerMove(x, y, event)
+      this.handlePointerMove(event)
       this.render()
     })
 
     this.svgElement.addEventListener("pointerup", (event) => {
-      const { x, y } = this.getRelativePoint(event)
-      this.canvas.handlePointerUp(x, y, event)
+      this.handlePointerUp(event)
       this.render()
     })
 
@@ -239,15 +245,7 @@ export class AdrawCanvas {
           }
           this.pinchViewportState = { ...this.canvas.getViewport() }
         } else if (event.touches.length === 1) {
-          // Pass single touch as pointer down with relative coordinates
-          const { x, y } = this.getRelativePoint(
-            event.touches[0] as unknown as PointerEvent,
-          )
-          this.canvas.handlePointerDown(
-            x,
-            y,
-            event as unknown as PointerEvent, // Mock for simple coordinates
-          )
+          this.handlePointerDown(event.touches[0] as unknown as PointerEvent)
           this.render()
         }
       },
@@ -320,11 +318,7 @@ export class AdrawCanvas {
           this.canvas.setViewport(newViewport)
           this.render()
         } else if (event.touches.length === 1 && !this.pinchStartDistance) {
-          // Pass single touch move with relative coordinates
-          const { x, y } = this.getRelativePoint(
-            event.touches[0] as unknown as PointerEvent,
-          )
-          this.canvas.handlePointerMove(x, y, event as unknown as PointerEvent)
+          this.handlePointerMove(event.touches[0] as unknown as PointerEvent)
           this.render()
         }
       },
@@ -345,7 +339,9 @@ export class AdrawCanvas {
     })
 
     this.canvas.on("change", () => {
-      this.renderElements()
+      const activeTool = this.canvas.getActiveTool()
+      if (activeTool === "select") this.selectElements()
+      else this.renderElements()
     })
 
     this.canvas.on("viewportChange", () => {
@@ -357,8 +353,31 @@ export class AdrawCanvas {
     })
 
     this.canvas.on("selectionChange", () => {
-      this.renderElements()
+      this.selectElements()
     })
+  }
+
+  private handlePointerDown(event: PointerEvent) {
+    const { x, y } = this.getRelativePoint(event)
+    this.dragStartPoint = { x, y }
+    this.canvas.handlePointerDown(x, y, event)
+  }
+
+  private handlePointerMove(event: PointerEvent) {
+    const { x, y } = this.getRelativePoint(event)
+    this.deltaPoint = {
+      x: x - this.dragStartPoint.x,
+      y: y - this.dragStartPoint.y,
+    }
+    this.dragStartPoint = { x, y }
+    this.canvas.handlePointerMove(x, y, event)
+  }
+
+  private handlePointerUp(event: PointerEvent) {
+    const { x, y } = this.getRelativePoint(event)
+    this.dragStartPoint = { x: 0, y: 0 }
+    this.deltaPoint = { x: 0, y: 0 }
+    this.canvas.handlePointerUp(x, y, event)
   }
 
   private handleTouchEnd(event: TouchEvent) {
@@ -369,11 +388,7 @@ export class AdrawCanvas {
     }
 
     if (event.touches.length === 0) {
-      // Pass touch end with relative coordinates
-      const { x, y } = this.getRelativePoint(
-        event.changedTouches[0] as unknown as PointerEvent,
-      )
-      this.canvas.handlePointerUp(x, y, event as unknown as PointerEvent)
+      this.handlePointerUp(event.changedTouches[0] as unknown as PointerEvent)
       this.render()
     }
   }
@@ -524,6 +539,31 @@ export class AdrawCanvas {
       const group = createElementGroup(tempElement)
       group.classList.add(temporaryClass)
       if (this.temporaryGroup) this.temporaryGroup.appendChild(group)
+    }
+  }
+
+  private selectElements(): void {
+    const elements = this.canvas.getElements()
+    const selectedIds = this.canvas.getSelectedIds()
+    const zoom = this.canvas.getViewport().zoom
+
+    for (const [, element] of elements) {
+      if (!element.visible) continue
+
+      const group = document.getElementById(element.id) as HTMLElement
+      const isSelected = selectedIds.has(element.id)
+      group.classList.toggle(selectedClass, isSelected)
+
+      if (!isSelected) continue
+      group.setAttribute("transform", getTransformElementAttribute(element))
+      if (element.type === "path") {
+        element.points = element.points.map(({ x, y }) => ({
+          x: x + this.deltaPoint.x * (1 / zoom),
+          y: y + this.deltaPoint.y * (1 / zoom),
+        }))
+        const pathElement = group.getElementsByTagName("path")[0]
+        pathElement.setAttribute("d", pointsToPath(element.points))
+      }
     }
   }
 
