@@ -24,5 +24,8 @@
     "source.organizeImports.biome": "explicit"
   },
   "editor.formatOnSave": true,
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
   "tailwindCSS.classFunctions": ["cn", "cva"]
 }
