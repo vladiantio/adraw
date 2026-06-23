@@ -19,8 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@adraw/core": "workspace:*",
-    "@adraw/vanilla": "workspace:*"
+    "@adraw/core": "workspace:*"
   },
   "devDependencies": {
     "@tsconfig/svelte": "^5.0.8",

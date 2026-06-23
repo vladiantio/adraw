@@ -20,7 +20,6 @@
   "license": "ISC",
   "dependencies": {
     "@adraw/core": "workspace:*",
-    "@adraw/vanilla": "workspace:*",
     "solid-js": "^1.9.11"
   }
 }

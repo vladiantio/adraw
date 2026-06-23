@@ -8,7 +8,7 @@ import type {
   ToolType,
   ViewportState,
 } from "@adraw/core"
-import { AdrawCanvas } from "@adraw/vanilla"
+import { AdrawCanvas } from "@adraw/core"
 import React, {
   createContext,
   type ReactNode,

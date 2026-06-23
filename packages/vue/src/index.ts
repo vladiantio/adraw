@@ -1,4 +1,5 @@
 import {
+  AdrawCanvas,
   type CanvasElement,
   type CanvasOptions,
   Canvas as CoreCanvas,
@@ -6,7 +7,6 @@ import {
   type ToolType,
   type ViewportState,
 } from "@adraw/core"
-import { AdrawCanvas } from "@adraw/vanilla"
 import { h, onMounted, onUnmounted, reactive, ref, type VNode } from "vue"
 
 export interface CanvasVueOptions extends CanvasOptions {

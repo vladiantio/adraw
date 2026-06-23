@@ -1,12 +1,8 @@
-import type {
-  CanvasElement,
-  CanvasOptions,
-  Point,
-  SnappingConfig,
-  ToolType,
-  ViewportState,
-} from "@adraw/core"
-import { Canvas, getElementsBounds, panViewport } from "@adraw/core"
+import { Canvas, type CanvasOptions } from "./canvas"
+import { getElementsBounds } from "./elements"
+import type { SnappingConfig } from "./snapping"
+import type { CanvasElement, Point, ToolType, ViewportState } from "./types"
+import { panViewport } from "./viewport"
 
 const svgNamespaceURI = "http://www.w3.org/2000/svg"
 const elementsGroupClass = "adraw-elements-group"

@@ -6,7 +6,7 @@ import {
   type ToolType,
   type ViewportState,
 } from "@adraw/core"
-import { AdrawCanvas } from "@adraw/vanilla"
+import { AdrawCanvas } from "@adraw/core"
 import { onDestroy, onMount } from "svelte"
 
 export interface CanvasSvelteOptions extends CanvasOptions {
