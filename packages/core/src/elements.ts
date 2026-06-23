@@ -111,8 +111,7 @@ export function resizeElement(
     | "right-center"
     | "center" = "top-left",
 ): CanvasElement {
-  let x = element.x
-  let y = element.y
+  let { x, y } = element
 
   switch (anchor) {
     case "top-right":
