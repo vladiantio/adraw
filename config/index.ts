@@ -1,12 +1,12 @@
-import { defineConfig, type Options } from "tsup"
+import { defineConfig, type UserConfig } from "tsdown"
 
-export const tsupConfig = (options?: Options) =>
+export const tsdownConfig = (options?: UserConfig) =>
   defineConfig({
     entry: ["src/index.ts"],
     format: ["cjs", "esm"],
     dts: true,
-    splitting: false,
     sourcemap: true,
     clean: true,
+    fixedExtension: false,
     ...options,
   })
