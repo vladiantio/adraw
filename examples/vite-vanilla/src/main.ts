@@ -1,6 +1,5 @@
 import "./index.css"
-import type { ToolType } from "@adraw/core"
-import { AdrawCanvas } from "@adraw/vanilla"
+import { type ToolType, AdrawCanvas } from "@adraw/core"
 
 // biome-ignore lint/style/noNonNullAssertion: root element
 const container = document.querySelector<HTMLDivElement>("#app")!

@@ -18,4 +18,3 @@ A lightweight infinity canvas library.
 - @adraw/vue: Components for Vue
 - @adraw/svelte: Components for Svelte
 - @adraw/solid: Components for SolidJS
-- @adraw/vanilla: Vanilla JavaScript

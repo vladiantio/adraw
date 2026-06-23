@@ -9,8 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@adraw/core": "workspace:*",
-    "@adraw/vanilla": "workspace:*"
+    "@adraw/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "5.9.3",
