@@ -1,7 +1,6 @@
 import "./index.css"
-import { type ToolType, AdrawCanvas } from "@adraw/core"
+import { AdrawCanvas, type ToolType } from "@adraw/core"
 
-// biome-ignore lint/style/noNonNullAssertion: root element
 const container = document.querySelector<HTMLDivElement>("#app")!
 
 const toolbar = document.createElement("div")
@@ -47,26 +46,32 @@ const actionButtons =
   toolbar.querySelectorAll<HTMLButtonElement>("[data-action]")
 actionButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    const action = btn.dataset.action
+    const { action } = btn.dataset
     switch (action) {
-      case "undo":
+      case "undo": {
         vanilla.undo()
         break
-      case "redo":
+      }
+      case "redo": {
         vanilla.redo()
         break
-      case "zoom-in":
+      }
+      case "zoom-in": {
         vanilla.zoomIn()
         break
-      case "zoom-out":
+      }
+      case "zoom-out": {
         vanilla.zoomOut()
         break
-      case "zoom-fit":
+      }
+      case "zoom-fit": {
         vanilla.zoomToFit()
         break
-      case "reset":
+      }
+      case "reset": {
         vanilla.resetZoom()
         break
+      }
     }
   })
 })

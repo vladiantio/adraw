@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+
 import {
   canvasToScreen,
   clamp,
@@ -13,7 +14,7 @@ describe("coordinates", () => {
   describe("screenToCanvas", () => {
     it("converts screen point to canvas point at zoom 1", () => {
       const viewport = { x: 0, y: 0, zoom: 1 }
-      const canvasSize = { width: 800, height: 600 }
+      const canvasSize = { height: 600, width: 800 }
       const screenPoint = { x: 400, y: 300 }
 
       const result = screenToCanvas(screenPoint, viewport, canvasSize)
@@ -24,7 +25,7 @@ describe("coordinates", () => {
 
     it("converts screen point with pan offset", () => {
       const viewport = { x: 100, y: 50, zoom: 1 }
-      const canvasSize = { width: 800, height: 600 }
+      const canvasSize = { height: 600, width: 800 }
       const screenPoint = { x: 400, y: 300 }
 
       const result = screenToCanvas(screenPoint, viewport, canvasSize)
@@ -35,7 +36,7 @@ describe("coordinates", () => {
 
     it("converts screen point with zoom", () => {
       const viewport = { x: 0, y: 0, zoom: 2 }
-      const canvasSize = { width: 800, height: 600 }
+      const canvasSize = { height: 600, width: 800 }
       const screenPoint = { x: 400, y: 300 }
 
       const result = screenToCanvas(screenPoint, viewport, canvasSize)
@@ -48,7 +49,7 @@ describe("coordinates", () => {
   describe("canvasToScreen", () => {
     it("converts canvas point to screen point at zoom 1", () => {
       const viewport = { x: 0, y: 0, zoom: 1 }
-      const canvasSize = { width: 800, height: 600 }
+      const canvasSize = { height: 600, width: 800 }
       const canvasPoint = { x: 0, y: 0 }
 
       const result = canvasToScreen(canvasPoint, viewport, canvasSize)
@@ -73,14 +74,14 @@ describe("coordinates", () => {
 
   describe("pointInBounds", () => {
     it("returns true when point is inside bounds", () => {
-      const bounds = { left: 0, right: 100, top: 0, bottom: 100 }
+      const bounds = { bottom: 100, left: 0, right: 100, top: 0 }
       const point = { x: 50, y: 50 }
 
       expect(pointInBounds(point, bounds)).toBe(true)
     })
 
     it("returns false when point is outside bounds", () => {
-      const bounds = { left: 0, right: 100, top: 0, bottom: 100 }
+      const bounds = { bottom: 100, left: 0, right: 100, top: 0 }
       const point = { x: 150, y: 50 }
 
       expect(pointInBounds(point, bounds)).toBe(false)

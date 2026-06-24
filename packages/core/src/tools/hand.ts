@@ -1,35 +1,39 @@
 import type { Point, ToolType } from "../types"
 import { panViewport } from "../viewport"
-import type { Tool, ToolContext, ToolState } from "./base"
-import { createBaseToolState } from "./base"
+import {
+  createBaseToolState,
+  type Tool,
+  type ToolContext,
+  type ToolState,
+} from "./base"
 
 export function createHandTool(): Tool {
   const state: ToolState = createBaseToolState()
   let lastPoint: Point | null = null
 
   return {
-    type: "hand" as ToolType,
     cursor: "grab",
-
+    getTemporaryElement() {
+      return null
+    },
     onActivate() {
       state.isActive = true
     },
-
     onDeactivate() {
       state.isActive = false
       state.startPoint = null
       state.currentPoint = null
       lastPoint = null
     },
-
     onPointerDown(_context: ToolContext, point: Point, event: PointerEvent) {
       state.startPoint = point
       state.currentPoint = point
       lastPoint = { x: event.clientX, y: event.clientY }
     },
-
     onPointerMove(context: ToolContext, point: Point, event: PointerEvent) {
-      if (lastPoint === null || !state.isActive) return
+      if (lastPoint === null || !state.isActive) {
+        return
+      }
 
       const movementX =
         event.movementX !== undefined &&
@@ -48,7 +52,9 @@ export function createHandTool(): Tool {
             ? event.clientY - lastPoint.y || 0
             : null
 
-      if (!movementX || !movementY) return
+      if (!movementX || !movementY) {
+        return
+      }
 
       const viewport = context.getViewport()
       const delta = {
@@ -62,15 +68,11 @@ export function createHandTool(): Tool {
       state.currentPoint = point
       lastPoint = { x: event.clientX, y: event.clientY }
     },
-
     onPointerUp(_context: ToolContext, _point: Point, _event: PointerEvent) {
       state.startPoint = null
       state.currentPoint = null
       lastPoint = null
     },
-
-    getTemporaryElement() {
-      return null
-    },
+    type: "hand" as ToolType,
   }
 }

@@ -1,7 +1,13 @@
 import { createPath, type ElementFactory } from "../elements"
 import type { PathElement, Point, ToolType } from "../types"
-import type { Tool, ToolContext, ToolOptions, ToolState } from "./base"
-import { createBaseToolState, getDefaultToolOptions } from "./base"
+import {
+  createBaseToolState,
+  getDefaultToolOptions,
+  type Tool,
+  type ToolContext,
+  type ToolOptions,
+  type ToolState,
+} from "./base"
 
 export interface DrawToolOptions extends ToolOptions {
   smoothing?: number
@@ -82,10 +88,10 @@ function getPathBounds(points: Point[]): {
   }
 
   return {
+    height: maxY - minY,
+    width: maxX - minX,
     x: minX,
     y: minY,
-    width: maxX - minX,
-    height: maxY - minY,
   }
 }
 
@@ -102,21 +108,23 @@ function createPathElement(
   const simplifiedPoints = simplifyPath(points, 1 - smoothing)
   const bounds = getPathBounds(simplifiedPoints)
 
-  if (!bounds) return null
+  if (!bounds) {
+    return null
+  }
 
   return createPath({
+    fillColor,
+    height: Math.max(bounds.height, 1),
+    locked: false,
+    points: simplifiedPoints,
+    rotation: 0,
+    strokeColor,
+    strokeWidth,
+    visible: true,
+    width: Math.max(bounds.width, 1),
     x: bounds.x,
     y: bounds.y,
-    width: Math.max(bounds.width, 1),
-    height: Math.max(bounds.height, 1),
-    rotation: 0,
     zIndex: 0,
-    locked: false,
-    visible: true,
-    points: simplifiedPoints,
-    strokeWidth,
-    strokeColor,
-    fillColor,
     ...factory,
   })
 }
@@ -128,13 +136,13 @@ export function createDrawTool(options: DrawToolOptions = {}): Tool {
   let temporaryElement: PathElement | null = null
 
   return {
-    type: "draw" as ToolType,
     cursor: "crosshair",
-
+    getTemporaryElement() {
+      return temporaryElement
+    },
     onActivate() {
       state.isActive = true
     },
-
     onDeactivate() {
       state.isActive = false
       state.startPoint = null
@@ -142,13 +150,11 @@ export function createDrawTool(options: DrawToolOptions = {}): Tool {
       currentPoints = []
       temporaryElement = null
     },
-
     onPointerDown(_context: ToolContext, point: Point, _event: PointerEvent) {
       state.startPoint = point
       state.currentPoint = point
       currentPoints = [point]
     },
-
     onPointerMove(_context: ToolContext, point: Point, _event: PointerEvent) {
       if (!state.startPoint) {
         return
@@ -163,7 +169,6 @@ export function createDrawTool(options: DrawToolOptions = {}): Tool {
         temporaryElement = element
       }
     },
-
     onPointerUp(context: ToolContext, _point: Point, _event: PointerEvent) {
       if (currentPoints.length < 2) {
         state.startPoint = null
@@ -190,9 +195,6 @@ export function createDrawTool(options: DrawToolOptions = {}): Tool {
       currentPoints = []
       temporaryElement = null
     },
-
-    getTemporaryElement() {
-      return temporaryElement
-    },
+    type: "draw" as ToolType,
   }
 }

@@ -1,8 +1,8 @@
 import {
   AdrawCanvas,
+  Canvas as CoreCanvas,
   type CanvasElement,
   type CanvasOptions,
-  Canvas as CoreCanvas,
   type ElementId,
   type ToolType,
   type ViewportState,
@@ -46,11 +46,11 @@ export function createCanvas(options?: CanvasSolidOptions) {
   })
 
   return {
+    activeTool,
     core,
     elements,
-    viewport,
-    activeTool,
     selectedIds,
+    viewport,
   }
 }
 
@@ -64,11 +64,11 @@ export function useTool() {
   const canvas = useCanvas()
 
   return {
-    get tool() {
-      return canvas?.activeTool() || "select"
-    },
     setTool: (tool: ToolType) => {
       canvas?.core.setActiveTool(tool)
+    },
+    get tool() {
+      return canvas?.activeTool() || "select"
     },
   }
 }
@@ -77,15 +77,15 @@ export function useViewport() {
   const canvas = useCanvas()
 
   return {
-    get viewport() {
-      return canvas?.viewport() || { x: 0, y: 0, zoom: 1 }
-    },
+    resetZoom: () => canvas?.core.resetZoom(),
     setViewport: (viewport: ViewportState) => {
       canvas?.core.setViewport(viewport)
     },
+    get viewport() {
+      return canvas?.viewport() || { x: 0, y: 0, zoom: 1 }
+    },
     zoomIn: () => canvas?.core.zoomIn(),
     zoomOut: () => canvas?.core.zoomOut(),
-    resetZoom: () => canvas?.core.resetZoom(),
     zoomToFit: () => canvas?.core.zoomToFit(),
   }
 }
@@ -94,10 +94,10 @@ export function useHistory() {
   const canvas = useCanvas()
 
   return {
-    undo: () => canvas?.core.undo() ?? false,
-    redo: () => canvas?.core.redo() ?? false,
-    canUndo: () => canvas?.core.canUndo() ?? false,
     canRedo: () => canvas?.core.canRedo() ?? false,
+    canUndo: () => canvas?.core.canUndo() ?? false,
+    redo: () => canvas?.core.redo() ?? false,
+    undo: () => canvas?.core.undo() ?? false,
   }
 }
 
@@ -105,15 +105,15 @@ export function useSelection() {
   const canvas = useCanvas()
 
   return {
-    get selectedIds() {
-      return canvas?.selectedIds() || new Set()
-    },
+    clearSelection: () => canvas?.core.clearSelection(),
+    deleteSelected: () => canvas?.core.deleteSelected(),
     get elements() {
       return canvas?.elements() || new Map()
     },
     selectAll: () => canvas?.core.selectAll(),
-    clearSelection: () => canvas?.core.clearSelection(),
-    deleteSelected: () => canvas?.core.deleteSelected(),
+    get selectedIds() {
+      return canvas?.selectedIds() || new Set()
+    },
   }
 }
 

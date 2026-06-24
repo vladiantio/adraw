@@ -78,9 +78,9 @@ function App() {
         <Toolbar />
         <Canvas
           style={{
-            width: "100%",
-            height: "calc(100vh - 50px)",
             background: "white",
+            height: "calc(100vh - 50px)",
+            width: "100%",
           }}
         />
       </div>
@@ -89,38 +89,38 @@ function App() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
+  activeButton: {
+    background: "#2196f3",
+    borderColor: "#1976d2",
+    color: "white",
+  },
   app: {
-    width: "100vw",
-    height: "100vh",
     display: "flex",
     flexDirection: "column",
     fontFamily: "system-ui, sans-serif",
-  },
-  toolbar: {
-    display: "flex",
-    gap: "4px",
-    padding: "8px",
-    background: "#f5f5f5",
-    borderBottom: "1px solid #ddd",
-    flexWrap: "wrap",
+    height: "100vh",
+    width: "100vw",
   },
   button: {
-    padding: "8px 12px",
-    border: "1px solid #ccc",
     background: "white",
+    border: "1px solid #ccc",
     borderRadius: "4px",
     cursor: "pointer",
     fontSize: "14px",
-  },
-  activeButton: {
-    background: "#2196f3",
-    color: "white",
-    borderColor: "#1976d2",
+    padding: "8px 12px",
   },
   separator: {
-    width: "1px",
     background: "#ddd",
     margin: "0 8px",
+    width: "1px",
+  },
+  toolbar: {
+    background: "#f5f5f5",
+    borderBottom: "1px solid #ddd",
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "4px",
+    padding: "8px",
   },
 }
 

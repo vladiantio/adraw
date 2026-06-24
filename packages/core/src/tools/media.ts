@@ -1,7 +1,11 @@
 import { createMedia } from "../elements"
 import type { Point, ToolType } from "../types"
-import type { Tool, ToolContext, ToolState } from "./base"
-import { createBaseToolState } from "./base"
+import {
+  createBaseToolState,
+  type Tool,
+  type ToolContext,
+  type ToolState,
+} from "./base"
 
 export interface MediaToolOptions {
   maxWidth?: number
@@ -22,8 +26,8 @@ export function createMediaTool(options: MediaToolOptions = {}): Tool {
       const img = new Image()
       img.onload = () => {
         resolve({
-          naturalWidth: img.naturalWidth,
           naturalHeight: img.naturalHeight,
+          naturalWidth: img.naturalWidth,
         })
       }
       img.onerror = reject
@@ -46,28 +50,28 @@ export function createMediaTool(options: MediaToolOptions = {}): Tool {
       if (width > maxWidth) {
         const ratio = maxWidth / width
         width = maxWidth
-        height = height * ratio
+        height *= ratio
       }
 
       if (height > maxHeight) {
         const ratio = maxHeight / height
         height = maxHeight
-        width = width * ratio
+        width *= ratio
       }
 
       const element = createMedia({
+        height,
+        locked: false,
+        mimeType,
+        naturalHeight,
+        naturalWidth,
+        rotation: 0,
+        src,
+        visible: true,
+        width,
         x: position.x - width / 2,
         y: position.y - height / 2,
-        width,
-        height,
-        rotation: 0,
         zIndex: context.getElements().size,
-        locked: false,
-        visible: true,
-        src,
-        mimeType,
-        naturalWidth,
-        naturalHeight,
       })
 
       const elements = context.getElements()
@@ -81,13 +85,13 @@ export function createMediaTool(options: MediaToolOptions = {}): Tool {
   }
 
   return {
-    type: "media" as ToolType,
     cursor: "copy",
-
+    getTemporaryElement() {
+      return null
+    },
     onActivate() {
       state.isActive = true
     },
-
     onDeactivate() {
       state.isActive = false
       state.startPoint = null
@@ -95,17 +99,14 @@ export function createMediaTool(options: MediaToolOptions = {}): Tool {
       pendingMedia = null
       insertPosition = null
     },
-
     onPointerDown(_context: ToolContext, point: Point, _event: PointerEvent) {
       state.startPoint = point
       state.currentPoint = point
       insertPosition = point
     },
-
     onPointerMove(_context: ToolContext, point: Point, _event: PointerEvent) {
       state.currentPoint = point
     },
-
     async onPointerUp(
       context: ToolContext,
       _point: Point,
@@ -125,10 +126,7 @@ export function createMediaTool(options: MediaToolOptions = {}): Tool {
       state.startPoint = null
       state.currentPoint = null
     },
-
-    getTemporaryElement() {
-      return null
-    },
+    type: "media" as ToolType,
   }
 }
 

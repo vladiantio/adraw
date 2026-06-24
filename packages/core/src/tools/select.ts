@@ -5,8 +5,12 @@ import {
   rotateElement,
 } from "../elements"
 import type { CanvasElement, ElementId, Point, ToolType } from "../types"
-import type { Tool, ToolContext, ToolState } from "./base"
-import { createBaseToolState } from "./base"
+import {
+  createBaseToolState,
+  type Tool,
+  type ToolContext,
+  type ToolState,
+} from "./base"
 
 export interface SelectToolOptions {
   multiSelectModifier: "shift" | "ctrl"
@@ -18,21 +22,21 @@ export function createSelectTool(
   const state: ToolState = createBaseToolState()
   let dragStartElement: CanvasElement | null = null
   let dragStartPoint: Point | null = null
-  const originalPositions: Map<
+  const originalPositions = new Map<
     ElementId,
     { x: number; y: number; width: number; height: number; rotation: number }
-  > = new Map()
+  >()
   let dragHandle: string | null = null
   let rotationCenter: Point | null = null
 
   return {
-    type: "select" as ToolType,
     cursor: "default",
-
+    getTemporaryElement() {
+      return null
+    },
     onActivate() {
       state.isActive = true
     },
-
     onDeactivate() {
       state.isActive = false
       state.startPoint = null
@@ -43,7 +47,6 @@ export function createSelectTool(
       rotationCenter = null
       originalPositions.clear()
     },
-
     onPointerDown(context: ToolContext, point: Point, event: PointerEvent) {
       state.startPoint = point
       state.currentPoint = point
@@ -90,11 +93,11 @@ export function createSelectTool(
         const el = elements.get(id)
         if (el) {
           originalPositions.set(id, {
-            x: el.x,
-            y: el.y,
-            width: el.width,
             height: el.height,
             rotation: el.rotation,
+            width: el.width,
+            x: el.x,
+            y: el.y,
           })
         }
       }
@@ -110,7 +113,6 @@ export function createSelectTool(
         }
       }
     },
-
     onPointerMove(context: ToolContext, point: Point, _event: PointerEvent) {
       if (!state.startPoint) {
         return
@@ -148,41 +150,51 @@ export function createSelectTool(
       } else if (dragHandle && dragHandle !== "rotation") {
         // Resize selected elements
         const bounds = getElementsBounds(elements, selectedIds)
-        if (!bounds) return
+        if (!bounds) {
+          return
+        }
 
         // Calculate new dimensions based on drag handle
         let newWidth = bounds.width
         let newHeight = bounds.height
 
         switch (dragHandle) {
-          case "top-left":
+          case "top-left": {
             newWidth = bounds.width + (bounds.x - point.x)
             newHeight = bounds.height + (bounds.y - point.y)
             break
-          case "top-right":
+          }
+          case "top-right": {
             newWidth = point.x - bounds.x
             newHeight = bounds.height + (bounds.y - point.y)
             break
-          case "bottom-left":
+          }
+          case "bottom-left": {
             newWidth = bounds.width + (bounds.x - point.x)
             newHeight = point.y - bounds.y
             break
-          case "bottom-right":
+          }
+          case "bottom-right": {
             newWidth = point.x - bounds.x
             newHeight = point.y - bounds.y
             break
-          case "top-center":
+          }
+          case "top-center": {
             newHeight = bounds.height + (bounds.y - point.y)
             break
-          case "bottom-center":
+          }
+          case "bottom-center": {
             newHeight = point.y - bounds.y
             break
-          case "left-center":
+          }
+          case "left-center": {
             newWidth = bounds.width + (bounds.x - point.x)
             break
-          case "right-center":
+          }
+          case "right-center": {
             newWidth = point.x - bounds.x
             break
+          }
         }
 
         // Resize each selected element
@@ -236,7 +248,6 @@ export function createSelectTool(
         context.setElements(new Map(elements))
       }
     },
-
     onPointerUp(context: ToolContext, _point: Point, _event: PointerEvent) {
       if (originalPositions.size > 0) {
         context.pushHistory()
@@ -250,9 +261,6 @@ export function createSelectTool(
       rotationCenter = null
       originalPositions.clear()
     },
-
-    getTemporaryElement() {
-      return null
-    },
+    type: "select" as ToolType,
   }
 }

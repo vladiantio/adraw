@@ -1,8 +1,8 @@
 import {
   AdrawCanvas,
+  Canvas as CoreCanvas,
   type CanvasElement,
   type CanvasOptions,
-  Canvas as CoreCanvas,
   type ElementId,
   type ToolType,
   type ViewportState,
@@ -25,10 +25,10 @@ export function createCanvas(options?: CanvasVueOptions) {
   const vanilla = ref<AdrawCanvas | null>(null)
 
   const state = reactive<CanvasState>({
-    elements: core.getElements(),
-    viewport: core.getViewport(),
     activeTool: core.getActiveTool(),
+    elements: core.getElements(),
     selectedIds: core.getSelectedIds(),
+    viewport: core.getViewport(),
   })
 
   core.on("change", ({ elements: newElements }) => {
@@ -62,11 +62,11 @@ export function useTool() {
   const { core, state } = useCanvas()
 
   return {
-    get tool() {
-      return state.activeTool
-    },
     setTool: (tool: ToolType) => {
       core?.setActiveTool(tool)
+    },
+    get tool() {
+      return state.activeTool
     },
   }
 }
@@ -75,15 +75,15 @@ export function useViewport() {
   const { core, state } = useCanvas()
 
   return {
-    get viewport() {
-      return state.viewport
-    },
+    resetZoom: () => core?.resetZoom(),
     setViewport: (viewport: ViewportState) => {
       core?.setViewport(viewport)
     },
+    get viewport() {
+      return state.viewport
+    },
     zoomIn: () => core?.zoomIn(),
     zoomOut: () => core?.zoomOut(),
-    resetZoom: () => core?.resetZoom(),
     zoomToFit: () => core?.zoomToFit(),
   }
 }
@@ -92,10 +92,10 @@ export function useHistory() {
   const { core } = useCanvas()
 
   return {
-    undo: () => core?.undo() ?? false,
-    redo: () => core?.redo() ?? false,
-    canUndo: () => core?.canUndo() ?? false,
     canRedo: () => core?.canRedo() ?? false,
+    canUndo: () => core?.canUndo() ?? false,
+    redo: () => core?.redo() ?? false,
+    undo: () => core?.undo() ?? false,
   }
 }
 
@@ -103,15 +103,15 @@ export function useSelection() {
   const { core, state } = useCanvas()
 
   return {
-    get selectedIds() {
-      return state.selectedIds
-    },
+    clearSelection: () => core?.clearSelection(),
+    deleteSelected: () => core?.deleteSelected(),
     get elements() {
       return state.elements
     },
     selectAll: () => core?.selectAll(),
-    clearSelection: () => core?.clearSelection(),
-    deleteSelected: () => core?.deleteSelected(),
+    get selectedIds() {
+      return state.selectedIds
+    },
   }
 }
 
@@ -127,7 +127,9 @@ export const Canvas = {
     ;(window as any).__adrawVueCanvas = canvas
 
     onMounted(() => {
-      if (!containerRef.value) return
+      if (!containerRef.value) {
+        return
+      }
 
       const vanilla = new AdrawCanvas({
         container: containerRef.value,
@@ -143,9 +145,9 @@ export const Canvas = {
 
     return () =>
       h("div", {
-        ref: containerRef,
         class: props.class,
-        style: { width: "100%", height: "100%", ...props.style },
+        ref: containerRef,
+        style: { height: "100%", width: "100%", ...props.style },
       })
   },
 }

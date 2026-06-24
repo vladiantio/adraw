@@ -2,6 +2,7 @@
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "endOfLine": "lf",
   "insertFinalNewline": true,
+  "printWidth": 80,
   "semi": false,
   "singleQuote": false,
   "tabWidth": 2,

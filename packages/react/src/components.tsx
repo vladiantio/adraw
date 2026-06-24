@@ -1,23 +1,23 @@
 "use client"
 
-import type {
-  CanvasElement,
-  CanvasEventMap,
-  CanvasOptions,
-  ElementId,
-  ToolType,
-  ViewportState,
+import {
+  AdrawCanvas,
+  type CanvasElement,
+  type CanvasEventMap,
+  type CanvasOptions,
+  type ElementId,
+  type ToolType,
+  type ViewportState,
 } from "@adraw/core"
-import { AdrawCanvas } from "@adraw/core"
 import React, {
   createContext,
-  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react"
 
 export interface CanvasReactOptions extends CanvasOptions {}
@@ -66,17 +66,17 @@ export function CanvasProvider({
 
   const value = useMemo<CanvasContextValue>(
     () => ({
-      vanillaRef,
-      elements,
-      setElements,
-      viewport,
-      setViewport,
       activeTool,
-      setActiveTool,
-      selectedIds,
-      setSelectedIds,
+      elements,
       options,
+      selectedIds,
+      setActiveTool,
+      setElements,
       setOptions,
+      setSelectedIds,
+      setViewport,
+      vanillaRef,
+      viewport,
     }),
     [elements, viewport, activeTool, selectedIds, options],
   )
@@ -105,7 +105,7 @@ export function useTool() {
     [vanillaRef, setActiveTool],
   )
 
-  return { tool: activeTool, setTool }
+  return { setTool, tool: activeTool }
 }
 
 export function useViewport() {
@@ -135,11 +135,11 @@ export function useViewport() {
   }, [vanillaRef])
 
   return {
-    viewport,
+    resetZoom,
     setViewport,
+    viewport,
     zoomIn,
     zoomOut,
-    resetZoom,
     zoomToFit,
   }
 }
@@ -147,23 +147,27 @@ export function useViewport() {
 export function useHistory() {
   const { vanillaRef } = useCanvas()
 
-  const undo = useCallback(() => {
-    return vanillaRef?.current?.getCore().undo() ?? false
-  }, [vanillaRef])
+  const undo = useCallback(
+    () => vanillaRef?.current?.getCore().undo() ?? false,
+    [vanillaRef],
+  )
 
-  const redo = useCallback(() => {
-    return vanillaRef?.current?.getCore().redo() ?? false
-  }, [vanillaRef])
+  const redo = useCallback(
+    () => vanillaRef?.current?.getCore().redo() ?? false,
+    [vanillaRef],
+  )
 
-  const canUndo = useCallback(() => {
-    return vanillaRef?.current?.getCore().canUndo() ?? false
-  }, [vanillaRef])
+  const canUndo = useCallback(
+    () => vanillaRef?.current?.getCore().canUndo() ?? false,
+    [vanillaRef],
+  )
 
-  const canRedo = useCallback(() => {
-    return vanillaRef?.current?.getCore().canRedo() ?? false
-  }, [vanillaRef])
+  const canRedo = useCallback(
+    () => vanillaRef?.current?.getCore().canRedo() ?? false,
+    [vanillaRef],
+  )
 
-  return { undo, redo, canUndo, canRedo }
+  return { canRedo, canUndo, redo, undo }
 }
 
 export function useSelection() {
@@ -182,11 +186,11 @@ export function useSelection() {
   }, [vanillaRef])
 
   return {
-    selectedIds,
-    elements,
-    selectAll,
     clearSelection,
     deleteSelected,
+    elements,
+    selectAll,
+    selectedIds,
   }
 }
 
@@ -207,7 +211,9 @@ export function Canvas({ className, style }: CanvasProps) {
   } = useCanvas()
 
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!containerRef.current) {
+      return
+    }
 
     const vanilla = new AdrawCanvas({
       container: containerRef.current,
@@ -267,7 +273,7 @@ export function Canvas({ className, style }: CanvasProps) {
     <div
       ref={containerRef}
       className={className}
-      style={{ width: "100%", height: "100%", ...style }}
+      style={{ height: "100%", width: "100%", ...style }}
     />
   )
 }

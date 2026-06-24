@@ -25,7 +25,9 @@ function getTransformElementAttribute(element: CanvasElement) {
 }
 
 export function pointsToPath(points: Point[]): string {
-  if (points.length === 0) return ""
+  if (points.length === 0) {
+    return ""
+  }
 
   let d = `M ${points[0].x} ${points[0].y}`
 
@@ -110,7 +112,7 @@ export class AdrawCanvas {
   private guidesGroup: SVGGElement | null = null
   private transformOverlay: SVGGElement | null = null
   private resizeObserver: ResizeObserver | null = null
-  // private isDragging: boolean = false
+  // Private isDragging: boolean = false
   private deltaPoint: Point = { x: 0, y: 0 }
   private dragStartPoint: Point = { x: 0, y: 0 }
 
@@ -170,7 +172,9 @@ export class AdrawCanvas {
     x: number
     y: number
   } {
-    if (!this.svgElement) return { x: event.clientX, y: event.clientY }
+    if (!this.svgElement) {
+      return { x: event.clientX, y: event.clientY }
+    }
     const rect = this.svgElement.getBoundingClientRect()
     return {
       x: event.clientX - rect.left,
@@ -179,7 +183,9 @@ export class AdrawCanvas {
   }
 
   private setupEventListeners(): void {
-    if (!this.svgElement) return
+    if (!this.svgElement) {
+      return
+    }
 
     this.svgElement.addEventListener("pointerdown", (event) => {
       this.handlePointerDown(event)
@@ -198,19 +204,21 @@ export class AdrawCanvas {
 
     // Set cursor based on hovered handle
     this.svgElement.addEventListener("pointermove", (event) => {
-      if (!this.svgElement) return
+      if (!this.svgElement) {
+        return
+      }
       const target = event.target as HTMLElement
       const anchor = target.getAttribute("data-anchor")
       const cursorMap: Record<string, string> = {
-        "top-left": "nw-resize",
-        "top-right": "ne-resize",
+        "bottom-center": "s-resize",
         "bottom-left": "sw-resize",
         "bottom-right": "se-resize",
-        "top-center": "n-resize",
-        "bottom-center": "s-resize",
         "left-center": "w-resize",
         "right-center": "e-resize",
         rotation: "crosshair",
+        "top-center": "n-resize",
+        "top-left": "nw-resize",
+        "top-right": "ne-resize",
       }
       if (anchor && cursorMap[anchor]) {
         this.svgElement.style.cursor = cursorMap[anchor]
@@ -275,7 +283,9 @@ export class AdrawCanvas {
 
           // Apply scaling relative to the start state and start center point
           const rect = this.svgElement?.getBoundingClientRect()
-          if (!rect) return
+          if (!rect) {
+            return
+          }
 
           const canvasCenter = {
             x:
@@ -291,7 +301,7 @@ export class AdrawCanvas {
           let newViewport = { ...this.pinchViewportState }
 
           // Calculate zoom based on the ratio. zoomViewport takes deltaY which we don't naturally have here,
-          // so we calculate the zoom directly or simulate zoomViewport correctly.
+          // So we calculate the zoom directly or simulate zoomViewport correctly.
           // Since core zoomViewport uses deltaY logic, let's just use it with a proportional delta.
           // Or update viewport directly:
           newViewport.zoom = Math.max(
@@ -339,8 +349,11 @@ export class AdrawCanvas {
 
     this.canvas.on("change", () => {
       const activeTool = this.canvas.getActiveTool()
-      if (activeTool === "select") this.selectElements()
-      else this.renderElements()
+      if (activeTool === "select") {
+        this.selectElements()
+      } else {
+        this.renderElements()
+      }
     })
 
     this.canvas.on("viewportChange", () => {
@@ -394,54 +407,64 @@ export class AdrawCanvas {
 
   private updateCursor(tool: ToolType): void {
     const cursors: Record<ToolType, string> = {
-      select: "default",
-      hand: "grab",
       draw: "crosshair",
-      eraser: "crosshair",
-      rectangle: "crosshair",
       ellipse: "crosshair",
+      eraser: "crosshair",
+      hand: "grab",
       media: "copy",
+      rectangle: "crosshair",
+      select: "default",
     }
-    if (this.svgElement)
+    if (this.svgElement) {
       this.svgElement.style.cursor = cursors[tool] || "default"
+    }
   }
 
   render(): void {
     const viewport = this.canvas.getViewport()
 
-    if (this.elementsGroup)
+    if (this.elementsGroup) {
       this.elementsGroup.setAttribute(
         "transform",
         `translate(${this.container.clientWidth / 2}, ${this.container.clientHeight / 2}) scale(${viewport.zoom}) translate(${-viewport.x}, ${-viewport.y})`,
       )
+    }
 
-    if (this.temporaryGroup)
+    if (this.temporaryGroup) {
       this.temporaryGroup.setAttribute(
         "transform",
         `translate(${this.container.clientWidth / 2}, ${this.container.clientHeight / 2}) scale(${viewport.zoom}) translate(${-viewport.x}, ${-viewport.y})`,
       )
+    }
 
-    if (this.transformOverlay)
+    if (this.transformOverlay) {
       this.transformOverlay.setAttribute(
         "transform",
         `translate(${this.container.clientWidth / 2}, ${this.container.clientHeight / 2}) scale(${viewport.zoom}) translate(${-viewport.x}, ${-viewport.y})`,
       )
+    }
 
     this.renderTemporary()
     this.renderTransformOverlay()
   }
 
   private renderTransformOverlay(): void {
-    if (!this.transformOverlay) return
+    if (!this.transformOverlay) {
+      return
+    }
 
     this.transformOverlay.innerHTML = ""
     const selectedIds = this.canvas.getSelectedIds()
     const elements = this.canvas.getElements()
 
-    if (selectedIds.size === 0) return
+    if (selectedIds.size === 0) {
+      return
+    }
 
     const bounds = getElementsBounds(elements, selectedIds)
-    if (!bounds) return
+    if (!bounds) {
+      return
+    }
 
     const { x, y, width, height } = bounds
 
@@ -459,14 +482,14 @@ export class AdrawCanvas {
 
     // Handle positions
     const handles = [
-      { x: x, y: y, anchor: "top-left" },
-      { x: x + width / 2, y: y, anchor: "top-center" },
-      { x: x + width, y: y, anchor: "top-right" },
-      { x: x + width, y: y + height / 2, anchor: "right-center" },
-      { x: x + width, y: y + height, anchor: "bottom-right" },
-      { x: x + width / 2, y: y + height, anchor: "bottom-center" },
-      { x: x, y: y + height, anchor: "bottom-left" },
-      { x: x, y: y + height / 2, anchor: "left-center" },
+      { anchor: "top-left", x, y },
+      { anchor: "top-center", x: x + width / 2, y },
+      { anchor: "top-right", x: x + width, y },
+      { anchor: "right-center", x: x + width, y: y + height / 2 },
+      { anchor: "bottom-right", x: x + width, y: y + height },
+      { anchor: "bottom-center", x: x + width / 2, y: y + height },
+      { anchor: "bottom-left", x, y: y + height },
+      { anchor: "left-center", x, y: y + height / 2 },
     ]
 
     // Rotation handle
@@ -510,26 +533,34 @@ export class AdrawCanvas {
   }
 
   private renderElements(): void {
-    if (!this.elementsGroup) return
+    if (!this.elementsGroup) {
+      return
+    }
 
     this.elementsGroup.innerHTML = ""
     const elements = this.canvas.getElements()
     const selectedIds = this.canvas.getSelectedIds()
 
     for (const [, element] of elements) {
-      if (!element.visible) continue
+      if (!element.visible) {
+        continue
+      }
 
       const group = createElementGroup(element)
       const isSelected = selectedIds.has(element.id)
       group.classList.add(elementClass)
       group.classList.toggle(selectedClass, isSelected)
 
-      if (this.elementsGroup) this.elementsGroup.appendChild(group)
+      if (this.elementsGroup) {
+        this.elementsGroup.appendChild(group)
+      }
     }
   }
 
   private renderTemporary(): void {
-    if (!this.temporaryGroup) return
+    if (!this.temporaryGroup) {
+      return
+    }
 
     this.temporaryGroup.innerHTML = ""
     const tempElement = this.canvas.getTemporaryElement()
@@ -537,23 +568,29 @@ export class AdrawCanvas {
     if (tempElement) {
       const group = createElementGroup(tempElement)
       group.classList.add(temporaryClass)
-      if (this.temporaryGroup) this.temporaryGroup.appendChild(group)
+      if (this.temporaryGroup) {
+        this.temporaryGroup.appendChild(group)
+      }
     }
   }
 
   private selectElements(): void {
     const elements = this.canvas.getElements()
     const selectedIds = this.canvas.getSelectedIds()
-    const zoom = this.canvas.getViewport().zoom
+    const { zoom } = this.canvas.getViewport()
 
     for (const [, element] of elements) {
-      if (!element.visible) continue
+      if (!element.visible) {
+        continue
+      }
 
       const group = document.getElementById(element.id) as HTMLElement
       const isSelected = selectedIds.has(element.id)
       group.classList.toggle(selectedClass, isSelected)
 
-      if (!isSelected) continue
+      if (!isSelected) {
+        continue
+      }
       group.setAttribute("transform", getTransformElementAttribute(element))
       if (element.type === "path") {
         element.points = element.points.map(({ x, y }) => ({

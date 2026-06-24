@@ -1,10 +1,13 @@
 import { createRectangle } from "../elements"
 import type { Point, RectangleElement, ToolType } from "../types"
-import type { Tool, ToolContext, ToolOptions, ToolState } from "./base"
 import {
   calculateBounds,
   createBaseToolState,
   getDefaultToolOptions,
+  type Tool,
+  type ToolContext,
+  type ToolOptions,
+  type ToolState,
 } from "./base"
 
 export interface RectangleToolOptions extends ToolOptions {
@@ -17,25 +20,23 @@ export function createRectangleTool(options: RectangleToolOptions = {}): Tool {
   let temporaryElement: RectangleElement | null = null
 
   return {
-    type: "rectangle" as ToolType,
     cursor: "crosshair",
-
+    getTemporaryElement() {
+      return temporaryElement
+    },
     onActivate() {
       state.isActive = true
     },
-
     onDeactivate() {
       state.isActive = false
       state.startPoint = null
       state.currentPoint = null
       temporaryElement = null
     },
-
     onPointerDown(_context: ToolContext, point: Point, _event: PointerEvent) {
       state.startPoint = point
       state.currentPoint = point
     },
-
     onPointerMove(_context: ToolContext, point: Point, _event: PointerEvent) {
       if (!state.startPoint) {
         return
@@ -46,18 +47,17 @@ export function createRectangleTool(options: RectangleToolOptions = {}): Tool {
       const bounds = calculateBounds(state.startPoint, point)
 
       temporaryElement = createRectangle({
+        cornerRadius: toolOptions.cornerRadius ?? 0,
+        height: bounds.height,
+        locked: false,
+        rotation: 0,
+        visible: true,
+        width: bounds.width,
         x: bounds.x,
         y: bounds.y,
-        width: bounds.width,
-        height: bounds.height,
-        rotation: 0,
         zIndex: 0,
-        locked: false,
-        visible: true,
-        cornerRadius: toolOptions.cornerRadius ?? 0,
       })
     },
-
     onPointerUp(context: ToolContext, _point: Point, _event: PointerEvent) {
       if (!state.startPoint || !state.currentPoint) {
         return
@@ -67,15 +67,15 @@ export function createRectangleTool(options: RectangleToolOptions = {}): Tool {
 
       if (bounds.width > 5 && bounds.height > 5) {
         const element = createRectangle({
+          cornerRadius: toolOptions.cornerRadius ?? 0,
+          height: bounds.height,
+          locked: false,
+          rotation: 0,
+          visible: true,
+          width: bounds.width,
           x: bounds.x,
           y: bounds.y,
-          width: bounds.width,
-          height: bounds.height,
-          rotation: 0,
           zIndex: context.getElements().size,
-          locked: false,
-          visible: true,
-          cornerRadius: toolOptions.cornerRadius ?? 0,
         })
 
         const elements = context.getElements()
@@ -89,9 +89,6 @@ export function createRectangleTool(options: RectangleToolOptions = {}): Tool {
       state.currentPoint = null
       temporaryElement = null
     },
-
-    getTemporaryElement() {
-      return temporaryElement
-    },
+    type: "rectangle" as ToolType,
   }
 }

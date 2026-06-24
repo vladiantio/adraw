@@ -8,8 +8,8 @@ export interface ViewportConfig {
 }
 
 const DEFAULT_VIEWPORT_CONFIG: ViewportConfig = {
-  minZoom: 0.1,
   maxZoom: 10,
+  minZoom: 0.1,
   zoomSensitivity: 0.001,
 }
 

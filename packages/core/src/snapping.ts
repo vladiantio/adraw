@@ -38,18 +38,18 @@ export function getElementSnapPoints(element: CanvasElement): SnapPoint[] {
   const cy = y + height / 2
 
   return [
-    { x, y, elementId: element.id, type: "left" },
-    { x: x + width, y, elementId: element.id, type: "right" },
-    { x, y, elementId: element.id, type: "top" },
-    { x, y: y + height, elementId: element.id, type: "bottom" },
-    { x: cx, y, elementId: element.id, type: "center-y" },
-    { x, y: cy, elementId: element.id, type: "center-x" },
+    { elementId: element.id, type: "left", x, y },
+    { elementId: element.id, type: "right", x: x + width, y },
+    { elementId: element.id, type: "top", x, y },
+    { elementId: element.id, type: "bottom", x, y: y + height },
+    { elementId: element.id, type: "center-y", x: cx, y },
+    { elementId: element.id, type: "center-x", x, y: cy },
   ]
 }
 
 export function getAllSnapPoints(
   elements: Map<ElementId, CanvasElement>,
-  excludeIds: Set<ElementId> = new Set(),
+  excludeIds = new Set<ElementId>(),
 ): SnapPoint[] {
   const snapPoints: SnapPoint[] = []
 
@@ -77,18 +77,18 @@ export function calculateSnap(
 
     if (dx < threshold) {
       guides.push({
-        type: "vertical",
-        position: snapPoint.x,
         elements: [snapPoint.elementId],
+        position: snapPoint.x,
+        type: "vertical",
       })
       snapped = true
     }
 
     if (dy < threshold) {
       guides.push({
-        type: "horizontal",
-        position: snapPoint.y,
         elements: [snapPoint.elementId],
+        position: snapPoint.y,
+        type: "horizontal",
       })
       snapped = true
     }
@@ -139,9 +139,9 @@ export function snapBoundsToElements(
     if (Math.abs(bounds.x - point.x) < threshold) {
       newX = point.x
       guides.push({
-        type: "vertical",
-        position: point.x,
         elements: [point.elementId],
+        position: point.x,
+        type: "vertical",
       })
       break
     }
@@ -151,9 +151,9 @@ export function snapBoundsToElements(
     if (Math.abs(bounds.x + bounds.width - point.x) < threshold) {
       newX = point.x - bounds.width
       guides.push({
-        type: "vertical",
-        position: point.x,
         elements: [point.elementId],
+        position: point.x,
+        type: "vertical",
       })
       break
     }
@@ -163,9 +163,9 @@ export function snapBoundsToElements(
     if (Math.abs(bounds.y - point.y) < threshold) {
       newY = point.y
       guides.push({
-        type: "horizontal",
-        position: point.y,
         elements: [point.elementId],
+        position: point.y,
+        type: "horizontal",
       })
       break
     }
@@ -175,19 +175,19 @@ export function snapBoundsToElements(
     if (Math.abs(bounds.y + bounds.height - point.y) < threshold) {
       newY = point.y - bounds.height
       guides.push({
-        type: "horizontal",
-        position: point.y,
         elements: [point.elementId],
+        position: point.y,
+        type: "horizontal",
       })
       break
     }
   }
 
   return {
+    guides,
+    height: bounds.height,
+    width: bounds.width,
     x: newX,
     y: newY,
-    width: bounds.width,
-    height: bounds.height,
-    guides,
   }
 }

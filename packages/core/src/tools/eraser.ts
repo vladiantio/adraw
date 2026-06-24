@@ -1,27 +1,30 @@
 import { getElementAtPoint } from "../elements"
 import type { Point, ToolType } from "../types"
-import type { Tool, ToolContext, ToolState } from "./base"
-import { createBaseToolState } from "./base"
+import {
+  createBaseToolState,
+  type Tool,
+  type ToolContext,
+  type ToolState,
+} from "./base"
 
 export function createEraserTool(): Tool {
   const state: ToolState = createBaseToolState()
   let deletedElements: string[] = []
 
   return {
-    type: "eraser" as ToolType,
     cursor: "crosshair",
-
+    getTemporaryElement() {
+      return null
+    },
     onActivate() {
       state.isActive = true
     },
-
     onDeactivate() {
       state.isActive = false
       state.startPoint = null
       state.currentPoint = null
       deletedElements = []
     },
-
     onPointerDown(context: ToolContext, point: Point, _event: PointerEvent) {
       state.startPoint = point
       state.currentPoint = point
@@ -36,7 +39,6 @@ export function createEraserTool(): Tool {
         deletedElements.push(element.id)
       }
     },
-
     onPointerMove(context: ToolContext, point: Point, _event: PointerEvent) {
       if (!state.startPoint) {
         return
@@ -53,7 +55,6 @@ export function createEraserTool(): Tool {
         deletedElements.push(element.id)
       }
     },
-
     onPointerUp(context: ToolContext, _point: Point, _event: PointerEvent) {
       if (deletedElements.length > 0) {
         context.pushHistory()
@@ -63,9 +64,6 @@ export function createEraserTool(): Tool {
       state.currentPoint = null
       deletedElements = []
     },
-
-    getTemporaryElement() {
-      return null
-    },
+    type: "eraser" as ToolType,
   }
 }

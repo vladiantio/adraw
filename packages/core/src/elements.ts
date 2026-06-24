@@ -47,8 +47,8 @@ export function createPath(factory: ElementFactory<PathElement>): PathElement {
   return {
     ...factory,
     id: factory.id ?? generateId(),
-    type: "path",
     points: factory.points ?? [],
+    type: "path",
   }
 }
 
@@ -67,9 +67,9 @@ export function createGroup(
 ): GroupElement {
   return {
     ...factory,
+    children: factory.children ?? [],
     id: factory.id ?? generateId(),
     type: "group",
-    children: factory.children ?? [],
   }
 }
 
@@ -114,42 +114,50 @@ export function resizeElement(
   let { x, y } = element
 
   switch (anchor) {
-    case "top-right":
+    case "top-right": {
       x = element.x + element.width - width
       break
-    case "bottom-left":
+    }
+    case "bottom-left": {
       y = element.y + element.height - height
       break
-    case "bottom-right":
+    }
+    case "bottom-right": {
       x = element.x + element.width - width
       y = element.y + element.height - height
       break
-    case "top-center":
+    }
+    case "top-center": {
       x = element.x + (element.width - width) / 2
       break
-    case "bottom-center":
+    }
+    case "bottom-center": {
       x = element.x + (element.width - width) / 2
       y = element.y + element.height - height
       break
-    case "left-center":
+    }
+    case "left-center": {
       y = element.y + (element.height - height) / 2
       break
-    case "right-center":
+    }
+    case "right-center": {
       x = element.x + element.width - width
       y = element.y + (element.height - height) / 2
       break
-    case "center":
+    }
+    case "center": {
       x = element.x + (element.width - width) / 2
       y = element.y + (element.height - height) / 2
       break
+    }
   }
 
   return {
     ...element,
+    height: Math.max(1, height),
+    width: Math.max(1, width),
     x,
     y,
-    width: Math.max(1, width),
-    height: Math.max(1, height),
   }
 }
 
@@ -176,7 +184,7 @@ export function getElementsBounds(
   width: number
   height: number
 } | null {
-  let elementArray = Array.from(elements.values()).filter((el) => el.visible)
+  let elementArray = [...elements.values()].filter((el) => el.visible)
   if (ids) {
     elementArray = elementArray.filter((el) => ids.has(el.id))
   }
@@ -198,14 +206,14 @@ export function getElementsBounds(
   }
 
   return {
+    bottom,
+    height: bottom - top,
     left,
     right,
     top,
-    bottom,
+    width: right - left,
     x: left,
     y: top,
-    width: right - left,
-    height: bottom - top,
   }
 }
 
@@ -213,9 +221,9 @@ export function getElementAtPoint(
   elements: Map<ElementId, CanvasElement>,
   point: Point,
 ): CanvasElement | null {
-  const elementArray = Array.from(elements.values())
+  const elementArray = [...elements.values()]
     .filter((el) => el.visible && !el.locked)
-    .sort((a, b) => b.zIndex - a.zIndex)
+    .toSorted((a, b) => b.zIndex - a.zIndex)
 
   for (const element of elementArray) {
     if (isPointInElement(point, element)) {

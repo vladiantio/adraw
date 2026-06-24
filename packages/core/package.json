@@ -2,6 +2,9 @@
   "name": "@adraw/core",
   "version": "0.1.0",
   "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
   "type": "module",
   "exports": {
     ".": {
@@ -18,8 +21,5 @@
   "scripts": {
     "build": "tsdown --minify",
     "dev": "tsdown --watch"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  }
 }

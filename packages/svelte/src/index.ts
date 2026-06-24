@@ -1,12 +1,12 @@
 import {
+  AdrawCanvas,
+  Canvas as CoreCanvas,
   type CanvasElement,
   type CanvasOptions,
-  Canvas as CoreCanvas,
   type ElementId,
   type ToolType,
   type ViewportState,
 } from "@adraw/core"
-import { AdrawCanvas } from "@adraw/core"
 import { onDestroy, onMount } from "svelte"
 
 export interface CanvasSvelteOptions extends CanvasOptions {
@@ -24,10 +24,10 @@ export function createCanvas(options?: CanvasSvelteOptions) {
   const core = new CoreCanvas(options)
 
   const state: CanvasState = {
-    elements: core.getElements(),
-    viewport: core.getViewport(),
     activeTool: core.getActiveTool(),
+    elements: core.getElements(),
     selectedIds: core.getSelectedIds(),
+    viewport: core.getViewport(),
   }
 
   core.on("change", ({ elements: newElements }) => {
@@ -57,11 +57,11 @@ export function useTool() {
   const { core, state } = useCanvas() || {}
 
   return {
-    get tool() {
-      return state?.activeTool || "select"
-    },
     setTool: (tool: ToolType) => {
       core?.setActiveTool(tool)
+    },
+    get tool() {
+      return state?.activeTool || "select"
     },
   }
 }
@@ -70,15 +70,15 @@ export function useViewport() {
   const { core, state } = useCanvas() || {}
 
   return {
-    get viewport() {
-      return state?.viewport || { x: 0, y: 0, zoom: 1 }
-    },
+    resetZoom: () => core?.resetZoom(),
     setViewport: (viewport: ViewportState) => {
       core?.setViewport(viewport)
     },
+    get viewport() {
+      return state?.viewport || { x: 0, y: 0, zoom: 1 }
+    },
     zoomIn: () => core?.zoomIn(),
     zoomOut: () => core?.zoomOut(),
-    resetZoom: () => core?.resetZoom(),
     zoomToFit: () => core?.zoomToFit(),
   }
 }
@@ -87,10 +87,10 @@ export function useHistory() {
   const { core } = useCanvas() || {}
 
   return {
-    undo: () => core?.undo() ?? false,
-    redo: () => core?.redo() ?? false,
-    canUndo: () => core?.canUndo() ?? false,
     canRedo: () => core?.canRedo() ?? false,
+    canUndo: () => core?.canUndo() ?? false,
+    redo: () => core?.redo() ?? false,
+    undo: () => core?.undo() ?? false,
   }
 }
 
@@ -98,15 +98,15 @@ export function useSelection() {
   const { core, state } = useCanvas() || {}
 
   return {
-    get selectedIds() {
-      return state?.selectedIds || new Set()
-    },
+    clearSelection: () => core?.clearSelection(),
+    deleteSelected: () => core?.deleteSelected(),
     get elements() {
       return state?.elements || new Map()
     },
     selectAll: () => core?.selectAll(),
-    clearSelection: () => core?.clearSelection(),
-    deleteSelected: () => core?.deleteSelected(),
+    get selectedIds() {
+      return state?.selectedIds || new Set()
+    },
   }
 }
 
@@ -117,8 +117,8 @@ export interface CanvasProps {
 
 export function Canvas(props: CanvasProps) {
   let container: HTMLDivElement | undefined = undefined
-  let vanilla: AdrawCanvas | undefined = undefined
-  let canvasData: ReturnType<typeof createCanvas> | undefined = undefined
+  let vanilla: AdrawCanvas | undefined
+  let canvasData: ReturnType<typeof createCanvas> | undefined
 
   onMount(() => {
     canvasData = createCanvas()

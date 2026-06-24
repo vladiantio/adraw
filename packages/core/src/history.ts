@@ -14,9 +14,9 @@ export interface HistoryState {
 
 export function createHistoryState(maxSize: number = 100): HistoryState {
   return {
-    undoStack: [],
-    redoStack: [],
     maxSize,
+    redoStack: [],
+    undoStack: [],
   }
 }
 
@@ -38,9 +38,9 @@ export function pushHistory(
   }
 
   return {
-    undoStack: newUndoStack,
-    redoStack: [],
     maxSize: state.maxSize,
+    redoStack: [],
+    undoStack: newUndoStack,
   }
 }
 
@@ -67,13 +67,13 @@ export function undo(
   }
 
   return {
-    state: {
-      undoStack: newUndoStack,
-      redoStack: [...state.redoStack, currentEntry],
-      maxSize: state.maxSize,
-    },
     elements: lastEntry.elements,
     selectedIds: lastEntry.selectedIds,
+    state: {
+      maxSize: state.maxSize,
+      redoStack: [...state.redoStack, currentEntry],
+      undoStack: newUndoStack,
+    },
   }
 }
 
@@ -100,13 +100,13 @@ export function redo(
   }
 
   return {
-    state: {
-      undoStack: [...state.undoStack, currentEntry],
-      redoStack: newRedoStack,
-      maxSize: state.maxSize,
-    },
     elements: lastEntry.elements,
     selectedIds: lastEntry.selectedIds,
+    state: {
+      maxSize: state.maxSize,
+      redoStack: newRedoStack,
+      undoStack: [...state.undoStack, currentEntry],
+    },
   }
 }
 
@@ -121,7 +121,7 @@ export function canRedo(state: HistoryState): boolean {
 export function clearHistory(state: HistoryState): HistoryState {
   return {
     ...state,
-    undoStack: [],
     redoStack: [],
+    undoStack: [],
   }
 }

@@ -37,11 +37,11 @@ export function getElementBounds(
 ): { left: number; right: number; top: number; bottom: number; center: Point } {
   if (rotation === 0) {
     return {
+      bottom: y + height,
+      center: { x: x + width / 2, y: y + height / 2 },
       left: x,
       right: x + width,
       top: y,
-      bottom: y + height,
-      center: { x: x + width / 2, y: y + height / 2 },
     }
   }
 
@@ -67,11 +67,11 @@ export function getElementBounds(
   const ys = rotatedCorners.map((c) => c.y)
 
   return {
+    bottom: Math.max(...ys),
+    center: { x: cx, y: cy },
     left: Math.min(...xs),
     right: Math.max(...xs),
     top: Math.min(...ys),
-    bottom: Math.max(...ys),
-    center: { x: cx, y: cy },
   }
 }
 

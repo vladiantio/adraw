@@ -45,9 +45,9 @@ export interface Tool {
 
 export function createBaseToolState(): ToolState {
   return {
+    currentPoint: null,
     isActive: false,
     startPoint: null,
-    currentPoint: null,
   }
 }
 
@@ -59,8 +59,8 @@ export interface ToolOptions {
 
 export function getDefaultToolOptions(): ToolOptions {
   return {
-    strokeColor: "var(--adraw-stroke-color, #000)",
     fillColor: "transparent",
+    strokeColor: "var(--adraw-stroke-color, #000)",
     strokeWidth: 2,
   }
 }
@@ -74,7 +74,7 @@ export function calculateBounds(
   const width = Math.abs(endPoint.x - startPoint.x)
   const height = Math.abs(endPoint.y - startPoint.y)
 
-  return { x, y, width, height }
+  return { height, width, x, y }
 }
 
 export function getCenterPoint(startPoint: Point, endPoint: Point): Point {

@@ -114,7 +114,7 @@ export interface CanvasState {
   activeTool: ToolType
 }
 
-export type CanvasElementStyle = {
+export interface CanvasElementStyle {
   strokeColor?: string
   fillColor?: string
   strokeWidth?: number

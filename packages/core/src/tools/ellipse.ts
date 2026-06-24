@@ -1,32 +1,35 @@
 import { createEllipse } from "../elements"
 import type { EllipseElement, Point, ToolType } from "../types"
-import type { Tool, ToolContext, ToolState } from "./base"
-import { calculateBounds, createBaseToolState } from "./base"
+import {
+  calculateBounds,
+  createBaseToolState,
+  type Tool,
+  type ToolContext,
+  type ToolState,
+} from "./base"
 
 export function createEllipseTool(): Tool {
   const state: ToolState = createBaseToolState()
   let temporaryElement: EllipseElement | null = null
 
   return {
-    type: "ellipse" as ToolType,
     cursor: "crosshair",
-
+    getTemporaryElement() {
+      return temporaryElement
+    },
     onActivate() {
       state.isActive = true
     },
-
     onDeactivate() {
       state.isActive = false
       state.startPoint = null
       state.currentPoint = null
       temporaryElement = null
     },
-
     onPointerDown(_context: ToolContext, point: Point, _event: PointerEvent) {
       state.startPoint = point
       state.currentPoint = point
     },
-
     onPointerMove(_context: ToolContext, point: Point, _event: PointerEvent) {
       if (!state.startPoint) {
         return
@@ -37,17 +40,16 @@ export function createEllipseTool(): Tool {
       const bounds = calculateBounds(state.startPoint, point)
 
       temporaryElement = createEllipse({
+        height: bounds.height,
+        locked: false,
+        rotation: 0,
+        visible: true,
+        width: bounds.width,
         x: bounds.x,
         y: bounds.y,
-        width: bounds.width,
-        height: bounds.height,
-        rotation: 0,
         zIndex: 0,
-        locked: false,
-        visible: true,
       })
     },
-
     onPointerUp(context: ToolContext, _point: Point, _event: PointerEvent) {
       if (!state.startPoint || !state.currentPoint) {
         return
@@ -57,14 +59,14 @@ export function createEllipseTool(): Tool {
 
       if (bounds.width > 5 && bounds.height > 5) {
         const element = createEllipse({
+          height: bounds.height,
+          locked: false,
+          rotation: 0,
+          visible: true,
+          width: bounds.width,
           x: bounds.x,
           y: bounds.y,
-          width: bounds.width,
-          height: bounds.height,
-          rotation: 0,
           zIndex: context.getElements().size,
-          locked: false,
-          visible: true,
         })
 
         const elements = context.getElements()
@@ -78,9 +80,6 @@ export function createEllipseTool(): Tool {
       state.currentPoint = null
       temporaryElement = null
     },
-
-    getTemporaryElement() {
-      return temporaryElement
-    },
+    type: "ellipse" as ToolType,
   }
 }

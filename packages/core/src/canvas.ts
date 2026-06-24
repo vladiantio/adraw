@@ -44,20 +44,19 @@ type EventListener<K extends keyof CanvasEventMap> = (
 ) => void
 
 export class Canvas {
-  private elements: Map<ElementId, CanvasElement> = new Map()
-  private selectedIds: Set<ElementId> = new Set()
+  private elements = new Map<ElementId, CanvasElement>()
+  private selectedIds = new Set<ElementId>()
   private viewport: ViewportState
   private activeTool: Tool
   private snappingConfig: SnappingConfig
   private history = createHistoryState()
-  private listeners: Map<keyof CanvasEventMap, Set<EventListener<any>>> =
-    new Map()
+  private listeners = new Map<keyof CanvasEventMap, Set<EventListener<any>>>()
   private canvasSize: { width: number; height: number } = {
-    width: 0,
     height: 0,
+    width: 0,
   }
 
-  private tools: Map<ToolType, Tool> = new Map()
+  private tools = new Map<ToolType, Tool>()
 
   constructor(options: CanvasOptions = {}) {
     this.viewport = createViewport(options.initialViewport)
@@ -77,22 +76,10 @@ export class Canvas {
 
   private getToolContext(): ToolContext {
     return {
-      getElements: () => this.elements,
-      setElements: (elements) => {
-        this.elements = elements
-        this.emit("change", { elements: this.elements })
-      },
-      getSelectedIds: () => this.selectedIds,
-      setSelectedIds: (ids) => {
-        this.selectedIds = ids
-        this.emit("selectionChange", { selectedIds: this.selectedIds })
-      },
-      getViewport: () => this.viewport,
-      setViewport: (viewport) => {
-        this.viewport = viewport
-        this.emit("viewportChange", { viewport: this.viewport })
-      },
       getCanvasSize: () => this.canvasSize,
+      getElements: () => this.elements,
+      getSelectedIds: () => this.selectedIds,
+      getViewport: () => this.viewport,
       pushHistory: () => {
         this.history = pushHistory(
           this.history,
@@ -101,11 +88,23 @@ export class Canvas {
         )
       },
       setActiveTool: (tool) => this.setActiveTool(tool),
+      setElements: (elements) => {
+        this.elements = elements
+        this.emit("change", { elements: this.elements })
+      },
+      setSelectedIds: (ids) => {
+        this.selectedIds = ids
+        this.emit("selectionChange", { selectedIds: this.selectedIds })
+      },
+      setViewport: (viewport) => {
+        this.viewport = viewport
+        this.emit("viewportChange", { viewport: this.viewport })
+      },
     }
   }
 
   setCanvasSize(width: number, height: number): void {
-    this.canvasSize = { width, height }
+    this.canvasSize = { height, width }
   }
 
   setActiveTool(toolType: ToolType): void {
@@ -276,31 +275,39 @@ export class Canvas {
       }
     } else {
       switch (key) {
-        case "v":
+        case "v": {
           this.setActiveTool("select")
           break
-        case "h":
+        }
+        case "h": {
           this.setActiveTool("hand")
           break
-        case "d":
+        }
+        case "d": {
           this.setActiveTool("draw")
           break
-        case "e":
+        }
+        case "e": {
           this.setActiveTool("eraser")
           break
-        case "r":
+        }
+        case "r": {
           this.setActiveTool("rectangle")
           break
-        case "m":
+        }
+        case "m": {
           this.setActiveTool("media")
           break
+        }
         case "delete":
-        case "backspace":
+        case "backspace": {
           this.deleteSelected()
           break
-        case "escape":
+        }
+        case "escape": {
           this.clearSelection()
           break
+        }
       }
     }
   }
