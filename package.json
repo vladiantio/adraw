@@ -11,14 +11,16 @@
     "dev:react": "pnpm --filter=react dev",
     "dev:examples": "pnpm --filter=examples dev",
     "dev:web": "pnpm --filter=web dev",
-    "lint": "biome lint --write .",
-    "lint:fix": "biome check --write ."
+    "lint": "oxlint && oxfmt --check",
+    "lint:fix": "(oxlint --fix || true) && oxfmt",
+    "lint:github": "oxlint --format=github"
   },
-  "packageManager": "pnpm@10.30.0",
   "devDependencies": {
-    "@biomejs/biome": "2.4.2",
+    "oxfmt": "^0.56.0",
+    "oxlint": "^1.71.0",
     "tsdown": "0.22.3",
     "typescript": "5.9.3",
     "vitest": "^4.0.18"
-  }
+  },
+  "packageManager": "pnpm@11.8.0"
 }
