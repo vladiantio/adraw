@@ -1,0 +1,25 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+
+export async function getStaticPaths() {
+  const docs = await getCollection("docs");
+  return docs.map(doc => ({
+    params: { id: doc.id },
+    props: { doc },
+  }));
+}
+
+const { doc } = Astro.props;
+const { Content } = await render(doc);
+---
+
+<Layout>
+  <Header />
+  <article class="p-4 flex-1 prose dark:prose-invert">
+    <h1>{doc.data.title}</h1>
+    <p>{doc.data.description}</p>
+    <Content />
+  </article>
+</Layout>
