@@ -1,0 +1,91 @@
+<div id="app" class="w-full"></div>
+
+<script>
+  import { AdrawCanvas, type ToolType } from '@adraw/core';
+
+  const container = document.querySelector<HTMLDivElement>("#app")!;
+
+  const toolbar = document.createElement("div");
+  toolbar.className = "toolbar flex items-center";
+  toolbar.innerHTML = `
+    <button class="border border-primary bg-primary text-background h-8 px-3" data-tool="select" title="Select (V)">Select</button>
+    <button class="border h-8 px-3" data-tool="hand" title="Hand (H)">Hand</button>
+    <button class="border h-8 px-3" data-tool="rectangle" title="Rectangle (R)">Rectangle</button>
+    <button class="border h-8 px-3" data-tool="ellipse" title="Ellipse (E)">Ellipse</button>
+    <button class="border h-8 px-3" data-tool="draw" title="Draw (D)">Draw</button>
+    <button class="border h-8 px-3" data-tool="eraser" title="Eraser (E)">Eraser</button>
+    <div class="separator mx-4"></div>
+    <button class="border h-8 px-3" data-action="undo" title="Undo (Ctrl+Z)">Undo</button>
+    <button class="border h-8 px-3" data-action="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
+    <div class="separator mx-4"></div>
+    <button class="border h-8 px-3" data-action="zoom-in" title="Zoom In">+</button>
+    <button class="border h-8 px-3" data-action="zoom-out" title="Zoom Out">-</button>
+    <button class="border h-8 px-3" data-action="zoom-fit" title="Zoom to Fit">Fit</button>
+    <button class="border h-8 px-3" data-action="reset" title="Reset">Reset</button>
+  `;
+
+  const canvasContainer = document.createElement("div");
+  canvasContainer.className = "canvas-container";
+  canvasContainer.style.cssText =
+    "width: 100%; height: calc(100vh - 50px); border-width: 1px;";
+
+  container.appendChild(toolbar);
+  container.appendChild(canvasContainer);
+
+  const vanilla = new AdrawCanvas({
+    container: canvasContainer,
+  });
+
+  const buttons = toolbar.querySelectorAll<HTMLButtonElement>("[data-tool]");
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tool = btn.dataset.tool as ToolType;
+      vanilla.setActiveTool(tool);
+      updateToolbar();
+    });
+  });
+
+  const actionButtons =
+    toolbar.querySelectorAll<HTMLButtonElement>("[data-action]");
+  actionButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const {action} = btn.dataset;
+      switch (action) {
+        case "undo": {
+          vanilla.undo();
+          break;
+        }
+        case "redo": {
+          vanilla.redo();
+          break;
+        }
+        case "zoom-in": {
+          vanilla.zoomIn();
+          break;
+        }
+        case "zoom-out": {
+          vanilla.zoomOut();
+          break;
+        }
+        case "zoom-fit": {
+          vanilla.zoomToFit();
+          break;
+        }
+        case "reset": {
+          vanilla.resetZoom();
+          break;
+        }
+      }
+    });
+  });
+
+  function updateToolbar() {
+    const activeTool = vanilla.getActiveTool();
+    buttons.forEach((btn) => {
+      "active border-primary bg-primary text-background".split(" ").forEach(c => btn.classList.toggle(c, btn.dataset.tool === activeTool));
+      btn.ariaPressed = btn.dataset.tool === activeTool ? "true" : null;
+    });
+  }
+
+  updateToolbar();
+</script>
