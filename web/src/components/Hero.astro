@@ -1,8 +1,12 @@
 ---
-import Logo from "../assets/logo.svg"
+import Canvas from "./Canvas.astro";
 ---
 
 <div class="p-4 flex-1 flex flex-col items-center justify-center gap-8">
-	<h2 class="text-center text-6xl">Lightweight infinity canvas</h2>
-  <button type="button" class="h-12 rounded-md px-5 bg-primary text-primary-foreground font-semibold">Getting started</button>
+  <h2 class="text-center text-6xl">Lightweight infinity canvas</h2>
+  <a
+    class="flex flex-col gap-2 justify-center h-12 rounded-md px-5 bg-primary text-primary-foreground font-semibold"
+    href="/docs/core">Getting started</a
+  >
+  <Canvas />
 </div>

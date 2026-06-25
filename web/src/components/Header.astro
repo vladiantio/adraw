@@ -3,12 +3,33 @@ import Logo from "../assets/logo.svg"
 ---
 
 <div class="flex justify-between py-4 px-6">
-  <div class="flex gap-6 items-center">
+  <a class="flex gap-6 items-center" href="/">
     <Logo class="size-10" />
     <h1>adraw</h1>
-  </div>
+  </a>
   <ul class="flex gap-6 items-center">
-    <li><a href="/docs">Docs</a></li>
+    <li><a href="/docs/core">Docs</a></li>
     <li><a href="/examples">Examples</a></li>
+    <li>
+      <label><input type="radio" name="theme" value="system" /> System</label>
+      <label><input type="radio" name="theme" value="light" /> Light</label>
+      <label><input type="radio" name="theme" value="dark" /> Dark</label>
+    </li>
   </ul>
 </div>
+
+<script>
+  import { updateTheme } from "@/utils/theme";
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const theme = localStorage.theme || "system";
+    document.querySelectorAll<HTMLInputElement>("input[name=theme]").forEach((el) => {
+      const { value } = el;
+      if (theme === value) {el.setAttribute("checked", "");}
+      el.addEventListener("change", () => {
+        localStorage.theme = value;
+        updateTheme();
+      });
+    });
+  })
+</script>
