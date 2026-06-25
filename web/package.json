@@ -1,7 +1,7 @@
 {
   "name": "web",
-  "type": "module",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -9,10 +9,14 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@adraw/core": "workspace:*",
     "@astrojs/mdx": "^5.0.1",
     "@fontsource-variable/outfit": "^5.2.8",
     "@tailwindcss/vite": "^4.2.1",
     "astro": "5.16.11",
     "tailwindcss": "^4.2.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19"
   }
 }
