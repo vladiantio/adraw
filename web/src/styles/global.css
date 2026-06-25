@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./fonts.css";
+@plugin "@tailwindcss/typography";
 
 :root {
   color-scheme: light dark;
@@ -8,15 +9,24 @@
 @theme {
   --color-background: light-dark(oklch(1 0 0), oklch(0.145 0 0));
   --color-foreground: light-dark(oklch(0.145 0 0), oklch(0.985 0 0));
-  --color-primary: light-dark(oklch(0.44 0.16 303.373), oklch(0.84 0.16 303.373));
-  --color-primary-foreground: light-dark(oklch(1 0 0), oklch(0.205 0.16 303.373));
+  --color-primary: light-dark(
+    oklch(0.44 0.16 303.373),
+    oklch(0.84 0.16 303.373)
+  );
+  --color-primary-foreground: light-dark(
+    oklch(1 0 0),
+    oklch(0.205 0.16 303.373)
+  );
   --color-secondary: light-dark(oklch(0.97 0 0), oklch(0.269 0 0));
   --color-secondary-foreground: light-dark(oklch(0.205 0 0), oklch(0.985 0 0));
   --color-muted: light-dark(oklch(0.97 0 0), oklch(0.269 0 0));
   --color-muted-foreground: light-dark(oklch(0.556 0 0), oklch(0.708 0 0));
   --color-accent: light-dark(oklch(0.97 0 0), oklch(0.371 0 0));
   --color-accent-foreground: light-dark(oklch(0.205 0 0), oklch(0.985 0 0));
-  --color-destructive: light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216));
+  --color-destructive: light-dark(
+    oklch(0.577 0.245 27.325),
+    oklch(0.704 0.191 22.216)
+  );
   --color-border: light-dark(oklch(0.922 0 0), oklch(1 0 0 / 10%));
   --color-input: light-dark(oklch(0.922 0 0), oklch(1 0 0 / 15%));
   --color-ring: light-dark(oklch(0.708 0 0), oklch(0.556 0 0));
