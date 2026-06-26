@@ -8,6 +8,7 @@ import type {
   PathElement,
   Point,
   RectangleElement,
+  ResizeAnchor,
   StarElement,
 } from "./types"
 
@@ -100,16 +101,7 @@ export function resizeElement(
   element: CanvasElement,
   width: number,
   height: number,
-  anchor:
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right"
-    | "top-center"
-    | "bottom-center"
-    | "left-center"
-    | "right-center"
-    | "center" = "top-left",
+  anchor: ResizeAnchor = "top-left",
 ): CanvasElement {
   let { x, y } = element
 

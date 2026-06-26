@@ -4,7 +4,13 @@ import {
   resizeElement,
   rotateElement,
 } from "../elements"
-import type { CanvasElement, ElementId, Point, ToolType } from "../types"
+import type {
+  CanvasElement,
+  ElementId,
+  Point,
+  ResizeAnchor,
+  ToolType,
+} from "../types"
 import {
   createBaseToolState,
   type Tool,
@@ -210,6 +216,43 @@ export function createSelectTool(
               const newElementWidth = original.width * scaleX
               const newElementHeight = original.height * scaleY
 
+              let resizeAnchor: ResizeAnchor = "center"
+
+              switch (dragHandle) {
+                case "top-left": {
+                  resizeAnchor = "bottom-right"
+                  break
+                }
+                case "top-right": {
+                  resizeAnchor = "bottom-left"
+                  break
+                }
+                case "bottom-left": {
+                  resizeAnchor = "top-right"
+                  break
+                }
+                case "bottom-right": {
+                  resizeAnchor = "top-left"
+                  break
+                }
+                case "top-center": {
+                  resizeAnchor = "bottom-center"
+                  break
+                }
+                case "bottom-center": {
+                  resizeAnchor = "top-center"
+                  break
+                }
+                case "left-center": {
+                  resizeAnchor = "right-center"
+                  break
+                }
+                case "right-center": {
+                  resizeAnchor = "left-center"
+                  break
+                }
+              }
+
               // Resize element
               elements.set(
                 id,
@@ -217,7 +260,7 @@ export function createSelectTool(
                   element,
                   newElementWidth,
                   newElementHeight,
-                  "center",
+                  resizeAnchor,
                 ),
               )
             }

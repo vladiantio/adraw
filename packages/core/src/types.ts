@@ -137,3 +137,14 @@ export interface SnapResult {
   guides: SnapGuide[]
   snapped: boolean
 }
+
+export type ResizeAnchor =
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right"
+  | "top-center"
+  | "bottom-center"
+  | "left-center"
+  | "right-center"
+  | "center"

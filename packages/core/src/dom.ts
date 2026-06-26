@@ -517,18 +517,18 @@ export class AdrawCanvas {
 
     // Resize handles
     for (const handle of handles) {
-      const circle = document.createElementNS(svgNamespaceURI, "rect")
+      const square = document.createElementNS(svgNamespaceURI, "rect")
       const size = 8
-      circle.classList.add(resizeHandleClass)
-      circle.setAttribute("x", String(handle.x - size / 2))
-      circle.setAttribute("y", String(handle.y - size / 2))
-      circle.setAttribute("width", String(size))
-      circle.setAttribute("height", String(size))
-      circle.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
-      circle.setAttribute("stroke", "#ffffff")
-      circle.setAttribute("stroke-width", "2")
-      circle.setAttribute("data-anchor", handle.anchor)
-      this.transformOverlay.appendChild(circle)
+      square.classList.add(resizeHandleClass)
+      square.setAttribute("x", String(handle.x - size / 2))
+      square.setAttribute("y", String(handle.y - size / 2))
+      square.setAttribute("width", String(size))
+      square.setAttribute("height", String(size))
+      square.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
+      square.setAttribute("stroke", "#ffffff")
+      square.setAttribute("stroke-width", "2")
+      square.setAttribute("data-anchor", handle.anchor)
+      this.transformOverlay.appendChild(square)
     }
   }
 
@@ -592,13 +592,31 @@ export class AdrawCanvas {
         continue
       }
       group.setAttribute("transform", getTransformElementAttribute(element))
-      if (element.type === "path") {
-        element.points = element.points.map(({ x, y }) => ({
-          x: x + this.deltaPoint.x * (1 / zoom),
-          y: y + this.deltaPoint.y * (1 / zoom),
-        }))
-        const pathElement = group.getElementsByTagName("path")[0]
-        pathElement.setAttribute("d", pointsToPath(element.points))
+
+      switch (element.type) {
+        case "path": {
+          element.points = element.points.map(({ x, y }) => ({
+            x: x + this.deltaPoint.x * (1 / zoom),
+            y: y + this.deltaPoint.y * (1 / zoom),
+          }))
+          const pathElement = group.getElementsByTagName("path")[0]
+          pathElement.setAttribute("d", pointsToPath(element.points))
+          break
+        }
+        case "rectangle": {
+          const rectElement = group.getElementsByTagName("rect")[0]
+          rectElement.setAttribute("width", String(element.width))
+          rectElement.setAttribute("height", String(element.height))
+          break
+        }
+        case "ellipse": {
+          const ellipseElement = group.getElementsByTagName("ellipse")[0]
+          ellipseElement.setAttribute("cx", String(element.width / 2))
+          ellipseElement.setAttribute("cy", String(element.height / 2))
+          ellipseElement.setAttribute("rx", String(element.width / 2))
+          ellipseElement.setAttribute("ry", String(element.height / 2))
+          break
+        }
       }
     }
   }
