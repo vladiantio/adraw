@@ -234,22 +234,18 @@ export function createSelectTool(
             const anchorX = movesLeft ? bounds.x + bounds.width : bounds.x
             const anchorY = movesTop ? bounds.y + bounds.height : bounds.y
 
-            const newWidth = Math.max(
-              1,
-              changesWidth
-                ? movesLeft
-                  ? anchorX - localX
-                  : localX - anchorX
-                : bounds.width,
-            )
-            const newHeight = Math.max(
-              1,
-              changesHeight
-                ? movesTop
-                  ? anchorY - localY
-                  : localY - anchorY
-                : bounds.height,
-            )
+            // Left signed so a handle dragged past the opposite edge yields a
+            // negative size, which flips the element across the anchor.
+            const newWidth = changesWidth
+              ? movesLeft
+                ? anchorX - localX
+                : localX - anchorX
+              : bounds.width
+            const newHeight = changesHeight
+              ? movesTop
+                ? anchorY - localY
+                : localY - anchorY
+              : bounds.height
 
             if (element.type === "path" && singleOriginal.points) {
               // Scale the points about the fixed edge in the element's local
@@ -292,17 +288,24 @@ export function createSelectTool(
             const newDy = (signY * newHeight) / 2
 
             // World position of the anchor stays fixed: world = C + R(theta)*d.
+            // newDx/newDy carry the (possibly negative) sign so the center lands
+            // on the correct side when the box flips past the anchor.
             const anchorWorldX = cx + origDx * cos - origDy * sin
             const anchorWorldY = cy + origDx * sin + origDy * cos
             const newCx = anchorWorldX - (newDx * cos - newDy * sin)
             const newCy = anchorWorldY - (newDx * sin + newDy * cos)
 
+            // Store positive dimensions about the same center; a rectangle
+            // mirrored about its own center is identical, so abs() is all the
+            // flip needs here.
+            const absWidth = Math.max(1, Math.abs(newWidth))
+            const absHeight = Math.max(1, Math.abs(newHeight))
             elements.set(singleId, {
               ...element,
-              height: newHeight,
-              width: newWidth,
-              x: newCx - newWidth / 2,
-              y: newCy - newHeight / 2,
+              height: absHeight,
+              width: absWidth,
+              x: newCx - absWidth / 2,
+              y: newCy - absHeight / 2,
             })
           }
           context.setElements(new Map(elements))
@@ -332,28 +335,44 @@ export function createSelectTool(
           if (original) {
             const element = elements.get(id)
             if (element) {
-              // Scale each element's size and position relative to the fixed
-              // anchor so multi-element selections keep their layout.
-              const newX = anchorX + (original.x - anchorX) * scaleX
-              const newY = anchorY + (original.y - anchorY) * scaleY
-              const newElementWidth = original.width * scaleX
-              const newElementHeight = original.height * scaleY
-
               if (element.type === "path" && original.points) {
                 // A path renders from its absolute points, so scale those about
-                // the same anchor instead of only resizing the bounding box.
+                // the same anchor instead of only resizing the bounding box. A
+                // negative scale (handle dragged past the anchor) mirrors the
+                // points; re-derive the bbox from the result so it stays valid.
+                const scaledPoints = original.points.map((p) => ({
+                  x: anchorX + (p.x - anchorX) * scaleX,
+                  y: anchorY + (p.y - anchorY) * scaleY,
+                }))
+                const nb = getPointsBounds(scaledPoints)
                 elements.set(id, {
                   ...element,
-                  height: Math.max(1, newElementHeight),
-                  points: original.points.map((p) => ({
-                    x: anchorX + (p.x - anchorX) * scaleX,
-                    y: anchorY + (p.y - anchorY) * scaleY,
-                  })),
-                  width: Math.max(1, newElementWidth),
-                  x: newX,
-                  y: newY,
+                  height: Math.max(1, nb.height),
+                  points: scaledPoints,
+                  width: Math.max(1, nb.width),
+                  x: nb.x,
+                  y: nb.y,
                 })
               } else {
+                // Scale each element's size and position relative to the fixed
+                // anchor so multi-element selections keep their layout.
+                let newX = anchorX + (original.x - anchorX) * scaleX
+                let newY = anchorY + (original.y - anchorY) * scaleY
+                let newElementWidth = original.width * scaleX
+                let newElementHeight = original.height * scaleY
+
+                // A handle dragged past the opposite edge produces a negative
+                // scale; flip the element across the anchor instead of pinning
+                // it to a 1px sliver.
+                if (newElementWidth < 0) {
+                  newX += newElementWidth
+                  newElementWidth = -newElementWidth
+                }
+                if (newElementHeight < 0) {
+                  newY += newElementHeight
+                  newElementHeight = -newElementHeight
+                }
+
                 elements.set(id, {
                   ...element,
                   height: Math.max(1, newElementHeight),
