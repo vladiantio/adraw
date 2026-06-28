@@ -1,6 +1,5 @@
 import {
   AdrawCanvas,
-  Canvas as CoreCanvas,
   type CanvasElement,
   type CanvasOptions,
   type ElementId,
@@ -14,7 +13,7 @@ export interface CanvasSolidOptions extends CanvasOptions {
 }
 
 export function createCanvas(options?: CanvasSolidOptions) {
-  const core = new CoreCanvas(options)
+  const core = new AdrawCanvas(options)
 
   const [elements, setElements] = createSignal<Map<ElementId, CanvasElement>>(
     core.getElements(),
@@ -119,7 +118,6 @@ export function useSelection() {
 
 export function initCanvas(container: HTMLElement) {
   globalCanvas = createCanvas()
-  const vanilla = new AdrawCanvas({ container })
-  vanilla.render()
-  return vanilla
+  globalCanvas.core.mount(container)
+  return globalCanvas.core
 }

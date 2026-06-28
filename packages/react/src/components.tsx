@@ -99,7 +99,7 @@ export function useTool() {
 
   const setTool = useCallback(
     (tool: ToolType) => {
-      vanillaRef?.current?.getCore().setActiveTool(tool)
+      vanillaRef?.current?.setActiveTool(tool)
       setActiveTool(tool)
     },
     [vanillaRef, setActiveTool],
@@ -113,25 +113,25 @@ export function useViewport() {
 
   const setViewport = useCallback(
     (newViewport: ViewportState) => {
-      vanillaRef?.current?.getCore().setViewport(newViewport)
+      vanillaRef?.current?.setViewport(newViewport)
     },
     [vanillaRef],
   )
 
   const zoomIn = useCallback(() => {
-    vanillaRef?.current?.getCore().zoomIn()
+    vanillaRef?.current?.zoomIn()
   }, [vanillaRef])
 
   const zoomOut = useCallback(() => {
-    vanillaRef?.current?.getCore().zoomOut()
+    vanillaRef?.current?.zoomOut()
   }, [vanillaRef])
 
   const resetZoom = useCallback(() => {
-    vanillaRef?.current?.getCore().resetZoom()
+    vanillaRef?.current?.resetZoom()
   }, [vanillaRef])
 
   const zoomToFit = useCallback(() => {
-    vanillaRef?.current?.getCore().zoomToFit()
+    vanillaRef?.current?.zoomToFit()
   }, [vanillaRef])
 
   return {
@@ -148,22 +148,22 @@ export function useHistory() {
   const { vanillaRef } = useCanvas()
 
   const undo = useCallback(
-    () => vanillaRef?.current?.getCore().undo() ?? false,
+    () => vanillaRef?.current?.undo() ?? false,
     [vanillaRef],
   )
 
   const redo = useCallback(
-    () => vanillaRef?.current?.getCore().redo() ?? false,
+    () => vanillaRef?.current?.redo() ?? false,
     [vanillaRef],
   )
 
   const canUndo = useCallback(
-    () => vanillaRef?.current?.getCore().canUndo() ?? false,
+    () => vanillaRef?.current?.canUndo() ?? false,
     [vanillaRef],
   )
 
   const canRedo = useCallback(
-    () => vanillaRef?.current?.getCore().canRedo() ?? false,
+    () => vanillaRef?.current?.canRedo() ?? false,
     [vanillaRef],
   )
 
@@ -174,15 +174,15 @@ export function useSelection() {
   const { vanillaRef, selectedIds, elements } = useCanvas()
 
   const selectAll = useCallback(() => {
-    vanillaRef?.current?.getCore().selectAll()
+    vanillaRef?.current?.selectAll()
   }, [vanillaRef])
 
   const clearSelection = useCallback(() => {
-    vanillaRef?.current?.getCore().clearSelection()
+    vanillaRef?.current?.clearSelection()
   }, [vanillaRef])
 
   const deleteSelected = useCallback(() => {
-    vanillaRef?.current?.getCore().deleteSelected()
+    vanillaRef?.current?.deleteSelected()
   }, [vanillaRef])
 
   return {
@@ -223,7 +223,7 @@ export function Canvas({ className, style }: CanvasProps) {
 
     vanillaRef.current = vanilla
 
-    const core = vanilla.getCore()
+    const core = vanilla
 
     core.on<"change">(
       "change",

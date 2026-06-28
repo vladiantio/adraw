@@ -1,6 +1,5 @@
 import {
   AdrawCanvas,
-  Canvas as CoreCanvas,
   type CanvasElement,
   type CanvasOptions,
   type ElementId,
@@ -21,7 +20,7 @@ export interface CanvasState {
 }
 
 export function createCanvas(options?: CanvasSvelteOptions) {
-  const core = new CoreCanvas(options)
+  const core = new AdrawCanvas(options)
 
   const state: CanvasState = {
     activeTool: core.getActiveTool(),
@@ -117,21 +116,17 @@ export interface CanvasProps {
 
 export function Canvas(props: CanvasProps) {
   let container: HTMLDivElement | undefined = undefined
-  let vanilla: AdrawCanvas | undefined
   let canvasData: ReturnType<typeof createCanvas> | undefined
 
   onMount(() => {
     canvasData = createCanvas()
     ;(window as any).__adrawSvelteCanvas = canvasData
 
-    vanilla = new AdrawCanvas({
-      container: container!,
-    })
-    vanilla.render()
+    canvasData.core.mount(container!)
   })
 
   onDestroy(() => {
-    vanilla?.destroy()
+    canvasData?.core.destroy()
   })
 
   return {
