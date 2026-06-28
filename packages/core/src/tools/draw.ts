@@ -1,4 +1,8 @@
-import { createPath, type ElementFactory } from "../elements"
+import {
+  createPath,
+  DEFAULT_PATH_SMOOTHING,
+  type ElementFactory,
+} from "../elements"
 import type { PathElement, Point, ToolType } from "../types"
 import {
   createBaseToolState,
@@ -98,7 +102,7 @@ function getPathBounds(points: Point[]): {
 function createPathElement(
   points: Point[],
   {
-    smoothing = 0.5,
+    smoothing = DEFAULT_PATH_SMOOTHING,
     strokeWidth = 2,
     strokeColor = "var(--adraw-stroke-color, #000)",
     fillColor = "transparent",
@@ -118,6 +122,7 @@ function createPathElement(
     locked: false,
     points: simplifiedPoints,
     rotation: 0,
+    smoothing,
     strokeColor,
     strokeWidth,
     visible: true,

@@ -60,6 +60,10 @@ export interface PathElement extends BaseElement {
   strokeWidth: number
   strokeColor: string
   fillColor: string
+  // Spline tension used when rendering the stroke (0 = straight segments,
+  // 1 = full Catmull-Rom curve). Falls back to DEFAULT_PATH_SMOOTHING when
+  // omitted.
+  smoothing?: number
 }
 
 export interface MediaElement extends BaseElement {

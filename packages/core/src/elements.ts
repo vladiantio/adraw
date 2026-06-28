@@ -16,6 +16,11 @@ export type ElementFactory<T extends CanvasElement> = Omit<T, "id" | "type"> & {
   id?: string
 }
 
+// Default spline tension for freehand paths (0 = straight segments, 1 = full
+// Catmull-Rom curve). Shared by the draw tool and the renderer so a path always
+// looks the same regardless of how it was constructed.
+export const DEFAULT_PATH_SMOOTHING = 0.5
+
 export function createRectangle(
   factory: ElementFactory<RectangleElement>,
 ): RectangleElement {
@@ -49,6 +54,7 @@ export function createPath(factory: ElementFactory<PathElement>): PathElement {
     ...factory,
     id: factory.id ?? generateId(),
     points: factory.points ?? [],
+    smoothing: factory.smoothing ?? DEFAULT_PATH_SMOOTHING,
     type: "path",
   }
 }

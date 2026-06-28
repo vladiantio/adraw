@@ -1,5 +1,5 @@
 import { Canvas, type CanvasOptions } from "./canvas"
-import { getElementsBounds } from "./elements"
+import { DEFAULT_PATH_SMOOTHING, getElementsBounds } from "./elements"
 import type { SnappingConfig } from "./snapping"
 import type { CanvasElement, Point, ToolType, ViewportState } from "./types"
 import { panViewport } from "./viewport"
@@ -29,15 +29,44 @@ function getTransformElementAttribute(element: CanvasElement) {
   return `${translate} ${rotate}`
 }
 
-export function pointsToPath(points: Point[]): string {
+// Render the path through every point with a Cardinal/Catmull-Rom spline
+// expressed as cubic Béziers. This yields a smooth curve that still
+// interpolates each point, unlike straight line segments which look jagged for
+// freehand strokes. `tension` scales the control-point tangents: 0 collapses to
+// straight segments, 1 gives a full Catmull-Rom curve.
+export function pointsToPath(
+  points: Point[],
+  tension = DEFAULT_PATH_SMOOTHING,
+): string {
   if (points.length === 0) {
     return ""
   }
 
   let d = `M ${points[0].x} ${points[0].y}`
 
-  for (let i = 1; i < points.length; i++) {
-    d += ` L ${points[i].x} ${points[i].y}`
+  if (points.length < 3 || tension <= 0) {
+    for (let i = 1; i < points.length; i++) {
+      d += ` L ${points[i].x} ${points[i].y}`
+    }
+    return d
+  }
+
+  // Catmull-Rom tangents are (p2 - p0) / 2 scaled to thirds for the Bézier
+  // control points, i.e. /6. Folding tension in gives tension / 6.
+  const k = tension / 6
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i === 0 ? 0 : i - 1]
+    const p1 = points[i]
+    const p2 = points[i + 1]
+    const p3 = points[i + 2 < points.length ? i + 2 : points.length - 1]
+
+    const cp1x = p1.x + (p2.x - p0.x) * k
+    const cp1y = p1.y + (p2.y - p0.y) * k
+    const cp2x = p2.x - (p3.x - p1.x) * k
+    const cp2y = p2.y - (p3.y - p1.y) * k
+
+    d += ` C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${p2.x} ${p2.y}`
   }
 
   return d
@@ -75,7 +104,7 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
     }
 
     case "path": {
-      const pathData = pointsToPath(element.points)
+      const pathData = pointsToPath(element.points, element.smoothing)
       const path = document.createElementNS(svgNamespaceURI, "path")
       path.setAttribute("d", pathData)
       path.setAttribute("fill", element.fillColor || "none")
@@ -605,7 +634,10 @@ export class AdrawCanvas {
           // The select tool already transforms the points in canvas space, so
           // just re-render the path data from the current element state.
           const pathElement = group.getElementsByTagName("path")[0]
-          pathElement.setAttribute("d", pointsToPath(element.points))
+          pathElement.setAttribute(
+            "d",
+            pointsToPath(element.points, element.smoothing),
+          )
           break
         }
         case "rectangle": {
