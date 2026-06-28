@@ -1,6 +1,5 @@
 import {
   AdrawCanvas,
-  Canvas as CoreCanvas,
   type CanvasElement,
   type CanvasOptions,
   type ElementId,
@@ -21,7 +20,7 @@ export interface CanvasState {
 }
 
 export function createCanvas(options?: CanvasVueOptions) {
-  const core = new CoreCanvas(options)
+  const core = new AdrawCanvas(options)
   const vanilla = ref<AdrawCanvas | null>(null)
 
   const state = reactive<CanvasState>({
@@ -131,12 +130,8 @@ export const Canvas = {
         return
       }
 
-      const vanilla = new AdrawCanvas({
-        container: containerRef.value,
-      })
-
-      canvas.vanilla.value = vanilla
-      vanilla.render()
+      canvas.core.mount(containerRef.value)
+      canvas.vanilla.value = canvas.core
     })
 
     onUnmounted(() => {
