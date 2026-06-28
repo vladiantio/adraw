@@ -46,7 +46,7 @@ describe("history", () => {
     it("clears redo stack on new action", () => {
       let state = createHistoryState()
       state = pushHistory(state, elements, selectedIds)
-      state = undo(state, elements, selectedIds)!
+      state = undo(state, elements, selectedIds)!.state
       state = pushHistory(state, elements, selectedIds)
 
       expect(state.redoStack).toHaveLength(0)
@@ -81,7 +81,7 @@ describe("history", () => {
       let state = createHistoryState()
 
       state = pushHistory(state, elements, selectedIds)
-      state = undo(state, elements, selectedIds)!
+      state = undo(state, elements, selectedIds)!.state
       const result = redo(state, elements, selectedIds)
 
       expect(result).not.toBeNull()
@@ -125,7 +125,7 @@ describe("history", () => {
     it("canRedo returns true after undo", () => {
       let state = createHistoryState()
       state = pushHistory(state, elements, selectedIds)
-      state = undo(state, elements, selectedIds)!
+      state = undo(state, elements, selectedIds)!.state
 
       expect(canRedo(state)).toBe(true)
     })
