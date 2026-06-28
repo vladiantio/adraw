@@ -1,16 +1,9 @@
 import {
   getElementAtPoint,
   getElementsBounds,
-  resizeElement,
   rotateElement,
 } from "../elements"
-import type {
-  CanvasElement,
-  ElementId,
-  Point,
-  ResizeAnchor,
-  ToolType,
-} from "../types"
+import type { CanvasElement, ElementId, Point, ToolType } from "../types"
 import {
   createBaseToolState,
   type Tool,
@@ -34,6 +27,12 @@ export function createSelectTool(
   >()
   let dragHandle: string | null = null
   let rotationCenter: Point | null = null
+  let originalBounds: {
+    x: number
+    y: number
+    width: number
+    height: number
+  } | null = null
 
   return {
     cursor: "default",
@@ -51,6 +50,7 @@ export function createSelectTool(
       dragStartPoint = null
       dragHandle = null
       rotationCenter = null
+      originalBounds = null
       originalPositions.clear()
     },
     onPointerDown(context: ToolContext, point: Point, event: PointerEvent) {
@@ -108,10 +108,18 @@ export function createSelectTool(
         }
       }
 
-      // Calculate rotation center (bounding box center of selected elements)
+      // Capture the bounding box of the selection at drag start. Both rotation
+      // and resize must reference this constant snapshot, never the live
+      // (already-mutated) elements, otherwise the transform feeds back on itself.
       if (selectedElements.size > 0) {
         const bounds = getElementsBounds(elements, selectedElements)
         if (bounds) {
+          originalBounds = {
+            height: bounds.height,
+            width: bounds.width,
+            x: bounds.x,
+            y: bounds.y,
+          }
           rotationCenter = {
             x: bounds.x + bounds.width / 2,
             y: bounds.y + bounds.height / 2,
@@ -153,116 +161,61 @@ export function createSelectTool(
           }
         }
         context.setElements(new Map(elements))
-      } else if (dragHandle && dragHandle !== "rotation") {
-        // Resize selected elements
-        const bounds = getElementsBounds(elements, selectedIds)
-        if (!bounds) {
-          return
-        }
+      } else if (dragHandle && dragHandle !== "rotation" && originalBounds) {
+        // Resize selected elements relative to the snapshot taken on
+        // pointer-down so the transform tracks the pointer instead of feeding
+        // back on the elements it just mutated.
+        const bounds = originalBounds
+        const movesLeft =
+          dragHandle === "top-left" ||
+          dragHandle === "bottom-left" ||
+          dragHandle === "left-center"
+        const movesTop =
+          dragHandle === "top-left" ||
+          dragHandle === "top-right" ||
+          dragHandle === "top-center"
+        const changesWidth =
+          dragHandle !== "top-center" && dragHandle !== "bottom-center"
+        const changesHeight =
+          dragHandle !== "left-center" && dragHandle !== "right-center"
 
-        // Calculate new dimensions based on drag handle
-        let newWidth = bounds.width
-        let newHeight = bounds.height
+        // The corner/edge opposite the dragged handle stays fixed.
+        const anchorX = movesLeft ? bounds.x + bounds.width : bounds.x
+        const anchorY = movesTop ? bounds.y + bounds.height : bounds.y
 
-        switch (dragHandle) {
-          case "top-left": {
-            newWidth = bounds.width + (bounds.x - point.x)
-            newHeight = bounds.height + (bounds.y - point.y)
-            break
-          }
-          case "top-right": {
-            newWidth = point.x - bounds.x
-            newHeight = bounds.height + (bounds.y - point.y)
-            break
-          }
-          case "bottom-left": {
-            newWidth = bounds.width + (bounds.x - point.x)
-            newHeight = point.y - bounds.y
-            break
-          }
-          case "bottom-right": {
-            newWidth = point.x - bounds.x
-            newHeight = point.y - bounds.y
-            break
-          }
-          case "top-center": {
-            newHeight = bounds.height + (bounds.y - point.y)
-            break
-          }
-          case "bottom-center": {
-            newHeight = point.y - bounds.y
-            break
-          }
-          case "left-center": {
-            newWidth = bounds.width + (bounds.x - point.x)
-            break
-          }
-          case "right-center": {
-            newWidth = point.x - bounds.x
-            break
-          }
-        }
+        const newWidth = changesWidth
+          ? movesLeft
+            ? anchorX - point.x
+            : point.x - anchorX
+          : bounds.width
+        const newHeight = changesHeight
+          ? movesTop
+            ? anchorY - point.y
+            : point.y - anchorY
+          : bounds.height
 
-        // Resize each selected element
+        const scaleX = changesWidth ? newWidth / bounds.width : 1
+        const scaleY = changesHeight ? newHeight / bounds.height : 1
+
         for (const id of selectedIds) {
           const original = originalPositions.get(id)
           if (original) {
             const element = elements.get(id)
             if (element) {
-              const scaleX = newWidth / bounds.width
-              const scaleY = newHeight / bounds.height
-
-              // Calculate new dimensions for each element
+              // Scale each element's size and position relative to the fixed
+              // anchor so multi-element selections keep their layout.
+              const newX = anchorX + (original.x - anchorX) * scaleX
+              const newY = anchorY + (original.y - anchorY) * scaleY
               const newElementWidth = original.width * scaleX
               const newElementHeight = original.height * scaleY
 
-              let resizeAnchor: ResizeAnchor = "center"
-
-              switch (dragHandle) {
-                case "top-left": {
-                  resizeAnchor = "bottom-right"
-                  break
-                }
-                case "top-right": {
-                  resizeAnchor = "bottom-left"
-                  break
-                }
-                case "bottom-left": {
-                  resizeAnchor = "top-right"
-                  break
-                }
-                case "bottom-right": {
-                  resizeAnchor = "top-left"
-                  break
-                }
-                case "top-center": {
-                  resizeAnchor = "bottom-center"
-                  break
-                }
-                case "bottom-center": {
-                  resizeAnchor = "top-center"
-                  break
-                }
-                case "left-center": {
-                  resizeAnchor = "right-center"
-                  break
-                }
-                case "right-center": {
-                  resizeAnchor = "left-center"
-                  break
-                }
-              }
-
-              // Resize element
-              elements.set(
-                id,
-                resizeElement(
-                  element,
-                  newElementWidth,
-                  newElementHeight,
-                  resizeAnchor,
-                ),
-              )
+              elements.set(id, {
+                ...element,
+                height: Math.max(1, newElementHeight),
+                width: Math.max(1, newElementWidth),
+                x: newX,
+                y: newY,
+              })
             }
           }
         }
@@ -302,6 +255,7 @@ export function createSelectTool(
       dragStartPoint = null
       dragHandle = null
       rotationCenter = null
+      originalBounds = null
       originalPositions.clear()
     },
     type: "select" as ToolType,
