@@ -468,6 +468,19 @@ export class AdrawCanvas {
 
     const { x, y, width, height } = bounds
 
+    const overlay = document.createElementNS(svgNamespaceURI, "g")
+    if (selectedIds.size === 1) {
+      const [onlyId] = selectedIds
+      const element = elements.get(onlyId)
+      if (element && element.rotation) {
+        overlay.setAttribute(
+          "transform",
+          `rotate(${element.rotation}, ${x + width / 2}, ${y + height / 2})`,
+        )
+      }
+    }
+    this.transformOverlay.appendChild(overlay)
+
     // Main bounding box
     const rect = document.createElementNS(svgNamespaceURI, "rect")
     rect.setAttribute("x", String(x))
@@ -478,7 +491,7 @@ export class AdrawCanvas {
     rect.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
     rect.setAttribute("stroke-width", "2")
     rect.setAttribute("stroke-dasharray", "5,5")
-    this.transformOverlay.appendChild(rect)
+    overlay.appendChild(rect)
 
     // Handle positions
     const handles = [
@@ -503,7 +516,7 @@ export class AdrawCanvas {
     rotationHandle.setAttribute("stroke", "#ffffff")
     rotationHandle.setAttribute("stroke-width", "2")
     rotationHandle.setAttribute("data-anchor", "rotation")
-    this.transformOverlay.appendChild(rotationHandle)
+    overlay.appendChild(rotationHandle)
 
     // Connecting line for rotation handle
     const rotationLine = document.createElementNS(svgNamespaceURI, "line")
@@ -513,7 +526,7 @@ export class AdrawCanvas {
     rotationLine.setAttribute("y2", String(rotationHandleY + 6))
     rotationLine.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
     rotationLine.setAttribute("stroke-width", "2")
-    this.transformOverlay.appendChild(rotationLine)
+    overlay.appendChild(rotationLine)
 
     // Resize handles
     for (const handle of handles) {
@@ -528,7 +541,7 @@ export class AdrawCanvas {
       square.setAttribute("stroke", "#ffffff")
       square.setAttribute("stroke-width", "2")
       square.setAttribute("data-anchor", handle.anchor)
-      this.transformOverlay.appendChild(square)
+      overlay.appendChild(square)
     }
   }
 
