@@ -16,12 +16,17 @@ const rotationHandleClass = "adraw-rotation-handle"
 const resizeHandleClass = "adraw-resize-handle"
 
 function getTransformElementAttribute(element: CanvasElement) {
-  const translate =
-    element.type !== "path"
-      ? `translate(${element.x}, ${element.y})`
-      : undefined
+  // Paths are drawn from absolute points (no translate), so they must rotate
+  // about their absolute bbox center. Other elements are translated to (x, y)
+  // first, so their pivot is the local center (width/2, height/2).
+  if (element.type === "path") {
+    const cx = element.x + element.width / 2
+    const cy = element.y + element.height / 2
+    return `rotate(${element.rotation}, ${cx}, ${cy})`
+  }
+  const translate = `translate(${element.x}, ${element.y})`
   const rotate = `rotate(${element.rotation}, ${element.width / 2}, ${element.height / 2})`
-  return [translate, rotate].filter((s) => s).join(" ")
+  return `${translate} ${rotate}`
 }
 
 export function pointsToPath(points: Point[]): string {
@@ -113,8 +118,6 @@ export class AdrawCanvas {
   private transformOverlay: SVGGElement | null = null
   private resizeObserver: ResizeObserver | null = null
   // Private isDragging: boolean = false
-  private deltaPoint: Point = { x: 0, y: 0 }
-  private dragStartPoint: Point = { x: 0, y: 0 }
 
   // Touch gesture state
   private pinchStartDistance: number | null = null
@@ -371,24 +374,16 @@ export class AdrawCanvas {
 
   private handlePointerDown(event: PointerEvent) {
     const { x, y } = this.getRelativePoint(event)
-    this.dragStartPoint = { x, y }
     this.canvas.handlePointerDown(x, y, event)
   }
 
   private handlePointerMove(event: PointerEvent) {
     const { x, y } = this.getRelativePoint(event)
-    this.deltaPoint = {
-      x: x - this.dragStartPoint.x,
-      y: y - this.dragStartPoint.y,
-    }
-    this.dragStartPoint = { x, y }
     this.canvas.handlePointerMove(x, y, event)
   }
 
   private handlePointerUp(event: PointerEvent) {
     const { x, y } = this.getRelativePoint(event)
-    this.dragStartPoint = { x: 0, y: 0 }
-    this.deltaPoint = { x: 0, y: 0 }
     this.canvas.handlePointerUp(x, y, event)
   }
 
@@ -590,7 +585,6 @@ export class AdrawCanvas {
   private selectElements(): void {
     const elements = this.canvas.getElements()
     const selectedIds = this.canvas.getSelectedIds()
-    const { zoom } = this.canvas.getViewport()
 
     for (const [, element] of elements) {
       if (!element.visible) {
@@ -608,10 +602,8 @@ export class AdrawCanvas {
 
       switch (element.type) {
         case "path": {
-          element.points = element.points.map(({ x, y }) => ({
-            x: x + this.deltaPoint.x * (1 / zoom),
-            y: y + this.deltaPoint.y * (1 / zoom),
-          }))
+          // The select tool already transforms the points in canvas space, so
+          // just re-render the path data from the current element state.
           const pathElement = group.getElementsByTagName("path")[0]
           pathElement.setAttribute("d", pointsToPath(element.points))
           break

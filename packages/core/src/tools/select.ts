@@ -15,6 +15,20 @@ export interface SelectToolOptions {
   multiSelectModifier: "shift" | "ctrl"
 }
 
+function getPointsBounds(points: Point[]) {
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  for (const p of points) {
+    minX = Math.min(minX, p.x)
+    maxX = Math.max(maxX, p.x)
+    minY = Math.min(minY, p.y)
+    maxY = Math.max(maxY, p.y)
+  }
+  return { height: maxY - minY, width: maxX - minX, x: minX, y: minY }
+}
+
 export function createSelectTool(
   options: SelectToolOptions = { multiSelectModifier: "shift" },
 ): Tool {
@@ -23,7 +37,14 @@ export function createSelectTool(
   let dragStartPoint: Point | null = null
   const originalPositions = new Map<
     ElementId,
-    { x: number; y: number; width: number; height: number; rotation: number }
+    {
+      x: number
+      y: number
+      width: number
+      height: number
+      rotation: number
+      points?: Point[]
+    }
   >()
   let dragHandle: string | null = null
   let rotationCenter: Point | null = null
@@ -100,6 +121,13 @@ export function createSelectTool(
         if (el) {
           originalPositions.set(id, {
             height: el.height,
+            // Paths are rendered from their absolute `points`, so a resize/move
+            // must transform the points too. Snapshot them to transform against
+            // a stable source instead of the already-mutated live element.
+            points:
+              el.type === "path"
+                ? el.points.map((p) => ({ x: p.x, y: p.y }))
+                : undefined,
             rotation: el.rotation,
             width: el.width,
             x: el.x,
@@ -223,6 +251,37 @@ export function createSelectTool(
                 : bounds.height,
             )
 
+            if (element.type === "path" && singleOriginal.points) {
+              // Scale the points about the fixed edge in the element's local
+              // (unrotated) frame, then translate so the dragged-opposite corner
+              // stays put in world space. The rotation pivot is the bbox center,
+              // which shifts as the box resizes; t = (I - R(theta)) * (Cold - Cnew)
+              // cancels the world-space drift that shift introduces.
+              const scaleX = changesWidth ? newWidth / bounds.width : 1
+              const scaleY = changesHeight ? newHeight / bounds.height : 1
+              const scaled = singleOriginal.points.map((p) => ({
+                x: anchorX + (p.x - anchorX) * scaleX,
+                y: anchorY + (p.y - anchorY) * scaleY,
+              }))
+              const nb = getPointsBounds(scaled)
+
+              const ddx = cx - (nb.x + nb.width / 2)
+              const ddy = cy - (nb.y + nb.height / 2)
+              const tx = ddx - (ddx * cos - ddy * sin)
+              const ty = ddy - (ddx * sin + ddy * cos)
+
+              elements.set(singleId, {
+                ...element,
+                height: nb.height,
+                points: scaled.map((p) => ({ x: p.x + tx, y: p.y + ty })),
+                width: nb.width,
+                x: nb.x + tx,
+                y: nb.y + ty,
+              })
+              context.setElements(new Map(elements))
+              return
+            }
+
             // Anchor offset from center, before and after the resize. The
             // anchor is the corner/edge opposite the dragged handle.
             const signX = changesWidth ? (movesLeft ? 1 : -1) : 0
@@ -280,13 +339,29 @@ export function createSelectTool(
               const newElementWidth = original.width * scaleX
               const newElementHeight = original.height * scaleY
 
-              elements.set(id, {
-                ...element,
-                height: Math.max(1, newElementHeight),
-                width: Math.max(1, newElementWidth),
-                x: newX,
-                y: newY,
-              })
+              if (element.type === "path" && original.points) {
+                // A path renders from its absolute points, so scale those about
+                // the same anchor instead of only resizing the bounding box.
+                elements.set(id, {
+                  ...element,
+                  height: Math.max(1, newElementHeight),
+                  points: original.points.map((p) => ({
+                    x: anchorX + (p.x - anchorX) * scaleX,
+                    y: anchorY + (p.y - anchorY) * scaleY,
+                  })),
+                  width: Math.max(1, newElementWidth),
+                  x: newX,
+                  y: newY,
+                })
+              } else {
+                elements.set(id, {
+                  ...element,
+                  height: Math.max(1, newElementHeight),
+                  width: Math.max(1, newElementWidth),
+                  x: newX,
+                  y: newY,
+                })
+              }
             }
           }
         }
@@ -303,11 +378,25 @@ export function createSelectTool(
           if (original) {
             const element = elements.get(id)
             if (element) {
-              elements.set(id, {
-                ...element,
-                x: original.x + delta.x,
-                y: original.y + delta.y,
-              })
+              if (element.type === "path" && original.points) {
+                // Paths render from absolute points, so move them alongside the
+                // bounding box rather than relying on a separate DOM-layer shift.
+                elements.set(id, {
+                  ...element,
+                  points: original.points.map((p) => ({
+                    x: p.x + delta.x,
+                    y: p.y + delta.y,
+                  })),
+                  x: original.x + delta.x,
+                  y: original.y + delta.y,
+                })
+              } else {
+                elements.set(id, {
+                  ...element,
+                  x: original.x + delta.x,
+                  y: original.y + delta.y,
+                })
+              }
             }
           }
         }
