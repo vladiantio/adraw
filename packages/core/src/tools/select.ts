@@ -179,6 +179,77 @@ export function createSelectTool(
         const changesHeight =
           dragHandle !== "left-center" && dragHandle !== "right-center"
 
+        const [singleId] = selectedIds
+        const singleOriginal =
+          selectedIds.size === 1 ? originalPositions.get(singleId) : undefined
+
+        if (singleOriginal && singleOriginal.rotation % 360 !== 0) {
+          // Rotated element: the handles live in the element's rotated frame, so
+          // the resize must be computed there. We un-rotate the pointer into the
+          // element's local space, size against the fixed (opposite) corner, and
+          // then re-derive the center so that corner stays put in world space.
+          const element = elements.get(singleId)
+          if (element) {
+            const theta = (singleOriginal.rotation * Math.PI) / 180
+            const cos = Math.cos(theta)
+            const sin = Math.sin(theta)
+            const cx = singleOriginal.x + singleOriginal.width / 2
+            const cy = singleOriginal.y + singleOriginal.height / 2
+
+            // Pointer in the element's local (unrotated) frame: R(-theta).
+            const px = point.x - cx
+            const py = point.y - cy
+            const localX = cx + px * cos + py * sin
+            const localY = cy - px * sin + py * cos
+
+            // Opposite edge stays fixed in local space.
+            const anchorX = movesLeft ? bounds.x + bounds.width : bounds.x
+            const anchorY = movesTop ? bounds.y + bounds.height : bounds.y
+
+            const newWidth = Math.max(
+              1,
+              changesWidth
+                ? movesLeft
+                  ? anchorX - localX
+                  : localX - anchorX
+                : bounds.width,
+            )
+            const newHeight = Math.max(
+              1,
+              changesHeight
+                ? movesTop
+                  ? anchorY - localY
+                  : localY - anchorY
+                : bounds.height,
+            )
+
+            // Anchor offset from center, before and after the resize. The
+            // anchor is the corner/edge opposite the dragged handle.
+            const signX = changesWidth ? (movesLeft ? 1 : -1) : 0
+            const signY = changesHeight ? (movesTop ? 1 : -1) : 0
+            const origDx = (signX * bounds.width) / 2
+            const origDy = (signY * bounds.height) / 2
+            const newDx = (signX * newWidth) / 2
+            const newDy = (signY * newHeight) / 2
+
+            // World position of the anchor stays fixed: world = C + R(theta)*d.
+            const anchorWorldX = cx + origDx * cos - origDy * sin
+            const anchorWorldY = cy + origDx * sin + origDy * cos
+            const newCx = anchorWorldX - (newDx * cos - newDy * sin)
+            const newCy = anchorWorldY - (newDx * sin + newDy * cos)
+
+            elements.set(singleId, {
+              ...element,
+              height: newHeight,
+              width: newWidth,
+              x: newCx - newWidth / 2,
+              y: newCy - newHeight / 2,
+            })
+          }
+          context.setElements(new Map(elements))
+          return
+        }
+
         // The corner/edge opposite the dragged handle stays fixed.
         const anchorX = movesLeft ? bounds.x + bounds.width : bounds.x
         const anchorY = movesTop ? bounds.y + bounds.height : bounds.y
