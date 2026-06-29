@@ -2,6 +2,7 @@
   "name": "@adraw/root",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build:all": "pnpm -r build",
     "build:core": "pnpm --filter=core build",
