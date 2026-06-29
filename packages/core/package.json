@@ -1,10 +1,26 @@
 {
   "name": "@adraw/core",
   "version": "0.1.0",
-  "description": "",
-  "keywords": [],
-  "license": "ISC",
-  "author": "",
+  "description": "Framework-agnostic core for adraw — canvas state, drawing tools and viewport.",
+  "keywords": [
+    "canvas",
+    "drawing",
+    "infinite",
+    "javascript",
+    "typescript",
+    "whiteboard"
+  ],
+  "homepage": "https://github.com/vladiantio/adraw/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/vladiantio/adraw/issues"
+  },
+  "license": "MIT",
+  "author": "Vladimir Antonio F. C.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vladiantio/adraw",
+    "directory": "packages/core"
+  },
   "files": [
     "dist"
   ],
