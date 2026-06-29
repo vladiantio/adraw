@@ -111,3 +111,7 @@ See the `examples/` directory for working integrations:
 - `vite-vue` — Vue + Vite
 - `vite-svelte` — Svelte + Vite
 - `vite-solid` — SolidJS + Vite
+
+## License
+
+MIT
