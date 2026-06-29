@@ -19,7 +19,7 @@
   "author": "Vladimir Antonio F. C.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vladiantio/adraw",
+    "url": "git+https://github.com/vladiantio/adraw.git",
     "directory": "packages/react"
   },
   "files": [
