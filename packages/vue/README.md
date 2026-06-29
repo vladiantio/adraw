@@ -5,7 +5,10 @@ Vue bindings for adraw — composables and components for building canvas-based 
 ## Installation
 
 ```bash
-npm install @adraw/vue @adraw/core
+pnpm add @adraw/vue
+
+# npm
+npm install @adraw/vue
 ```
 
 Vue 3.0 or later is required as a peer dependency.

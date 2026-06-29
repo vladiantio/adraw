@@ -5,7 +5,10 @@ React bindings for adraw — hooks and components for building canvas-based draw
 ## Installation
 
 ```bash
-npm install @adraw/react @adraw/core
+pnpm add @adraw/react
+
+# npm
+npm install @adraw/react
 ```
 
 React 17 or later is required as a peer dependency.

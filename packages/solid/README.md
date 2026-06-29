@@ -5,7 +5,10 @@ SolidJS bindings for adraw — primitives and components for building canvas-bas
 ## Installation
 
 ```bash
-npm install @adraw/solid @adraw/core
+pnpm add @adraw/solid
+
+# npm
+npm install @adraw/solid
 ```
 
 SolidJS 1.0 or later is required as a peer dependency.

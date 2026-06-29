@@ -5,7 +5,10 @@ Svelte bindings for adraw — stores and components for building canvas-based dr
 ## Installation
 
 ```bash
-npm install @adraw/svelte @adraw/core
+pnpm add @adraw/svelte
+
+# npm
+npm install @adraw/svelte
 ```
 
 Svelte 4 or later is required as a peer dependency.

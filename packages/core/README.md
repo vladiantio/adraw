@@ -5,6 +5,9 @@ Framework-agnostic core for adraw — canvas state, drawing tools, and viewport.
 ## Installation
 
 ```bash
+pnpm add @adraw/core
+
+# npm
 npm install @adraw/core
 ```
 
