@@ -1,20 +1,113 @@
 # adraw
 
-A lightweight infinity canvas library.
+> **Development version** — APIs and features are unstable and subject to change without notice.
+
+A lightweight, framework-agnostic infinity canvas library built on SVG. Supports pan, zoom, freehand drawing, shapes, and multi-element selection out of the box.
+
+## Features
+
+- Infinite canvas with smooth pan and zoom
+- Freehand drawing with Catmull-Rom spline smoothing
+- Shape tools: Rectangle, Ellipse
+- Selection with multi-select, resize, rotation, and flip
+- Eraser tool
+- Undo/redo history
+- Snap-to-grid and element snapping guides
+- Media (image) elements
+- Headless-friendly — mount to DOM or use as pure state engine
+- Framework bindings for React, Vue, Svelte, and SolidJS
 
 ## Tools
 
-- Select
-- Hand
-- Draw
-- Eraser
-- Rectangle
-- Ellipse
+| Tool      | Description                               |
+| --------- | ----------------------------------------- |
+| Select    | Select, move, resize, and rotate elements |
+| Hand      | Pan the canvas                            |
+| Draw      | Freehand path drawing                     |
+| Eraser    | Erase drawn paths                         |
+| Rectangle | Draw rectangles                           |
+| Ellipse   | Draw ellipses                             |
+| Media     | Place images on the canvas                |
 
 ## Packages
 
-- @adraw/core: Main core logic
-- @adraw/react: Components for React
-- @adraw/vue: Components for Vue
-- @adraw/svelte: Components for Svelte
-- @adraw/solid: Components for SolidJS
+| Package         | Description                               |
+| --------------- | ----------------------------------------- |
+| `@adraw/core`   | Core canvas logic, headless and DOM-ready |
+| `@adraw/react`  | React components and hooks                |
+| `@adraw/vue`    | Vue components                            |
+| `@adraw/svelte` | Svelte components                         |
+| `@adraw/solid`  | SolidJS components                        |
+
+## Quick Start
+
+```ts
+import { AdrawCanvas } from "@adraw/core"
+
+const canvas = new AdrawCanvas({
+  container: document.getElementById("app"),
+})
+
+// Switch tools
+canvas.setTool("draw")
+
+// Listen for changes
+canvas.on("change", (elements) => {
+  console.log(elements)
+})
+
+// Tear down
+canvas.destroy()
+```
+
+### React
+
+```tsx
+import { CanvasProvider, AdrawCanvas, useTool } from "@adraw/react"
+
+function Toolbar() {
+  const [tool, setTool] = useTool()
+  return <button onClick={() => setTool("draw")}>Draw</button>
+}
+
+export default function App() {
+  return (
+    <CanvasProvider>
+      <Toolbar />
+      <AdrawCanvas />
+    </CanvasProvider>
+  )
+}
+```
+
+## Development
+
+This is a [pnpm](https://pnpm.io) monorepo. Node 18+ required.
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build all packages
+pnpm build:all
+
+# Watch mode
+pnpm dev:all
+
+# Run tests
+pnpm test
+
+# Lint and format
+pnpm lint        # check
+pnpm lint:fix    # auto-fix
+```
+
+## Examples
+
+See the `examples/` directory for working integrations:
+
+- `vite-vanilla` — plain HTML/JS
+- `vite-react` — React + Vite
+- `vite-vue` — Vue + Vite
+- `vite-svelte` — Svelte + Vite
+- `vite-solid` — SolidJS + Vite
