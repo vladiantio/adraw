@@ -29,7 +29,12 @@
     "dev": "tsdown --watch"
   },
   "dependencies": {
-    "@adraw/core": "workspace:*",
+    "@adraw/core": "workspace:*"
+  },
+  "devDependencies": {
     "solid-js": "^1.9.11"
+  },
+  "peerDependencies": {
+    "solid-js": ">=1.0.0"
   }
 }

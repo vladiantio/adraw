@@ -29,10 +29,13 @@
     "dev": "tsdown --watch"
   },
   "dependencies": {
-    "@adraw/core": "workspace:*",
-    "vue": "^3.5.29"
+    "@adraw/core": "workspace:*"
   },
   "devDependencies": {
-    "@vue/tsconfig": "^0.8.1"
+    "@vue/tsconfig": "^0.8.1",
+    "vue": "^3.5.29"
+  },
+  "peerDependencies": {
+    "vue": ">=3.0.0"
   }
 }
