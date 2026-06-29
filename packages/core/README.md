@@ -1,0 +1,155 @@
+# @adraw/core
+
+Framework-agnostic core for adraw — canvas state, drawing tools, and viewport.
+
+## Installation
+
+```bash
+npm install @adraw/core
+```
+
+## Overview
+
+`@adraw/core` provides the `AdrawCanvas` class, which manages all drawing state and renders to an SVG element inside a given container. It can also run headless (without a DOM) for server-side or test environments.
+
+## Quick start
+
+```ts
+import { AdrawCanvas } from "@adraw/core"
+
+const canvas = new AdrawCanvas({ container: document.getElementById("app")! })
+```
+
+Pass `container` to mount immediately, or omit it and call `canvas.mount(el)` later.
+
+## Tools
+
+| Tool        | Description                               |
+| ----------- | ----------------------------------------- |
+| `select`    | Select, move, resize, and rotate elements |
+| `hand`      | Pan the viewport                          |
+| `draw`      | Freehand path drawing                     |
+| `eraser`    | Erase elements by painting over them      |
+| `rectangle` | Draw rectangles                           |
+| `ellipse`   | Draw ellipses                             |
+| `media`     | Insert images                             |
+
+```ts
+canvas.setActiveTool("draw")
+canvas.getActiveTool() // "draw"
+```
+
+## Elements
+
+Each element on the canvas has a type:
+
+- `rectangle` — rounded or sharp-cornered rect
+- `ellipse` — oval / circle
+- `star` — star shape with configurable point count
+- `path` — freehand stroke (Catmull-Rom smoothing)
+- `media` — raster image
+- `group` — container for other elements
+
+## Viewport
+
+```ts
+canvas.zoomIn()
+canvas.zoomOut()
+canvas.resetZoom()
+canvas.zoomToFit()
+canvas.setViewport({ x: 0, y: 0, zoom: 1.5 })
+canvas.getViewport() // ViewportState
+```
+
+Mouse wheel zooms when `Ctrl`/`Cmd` is held; otherwise pans. Pinch-to-zoom works on touch devices.
+
+## History
+
+```ts
+canvas.canUndo() // boolean
+canvas.canRedo() // boolean
+canvas.undo()
+canvas.redo()
+```
+
+Keyboard shortcuts `Ctrl+Z` / `Ctrl+Shift+Z` (or `Ctrl+Y`) are handled automatically when the canvas has keyboard focus.
+
+## Selection
+
+```ts
+canvas.selectAll() // select every element
+canvas.clearSelection() // deselect all
+canvas.deleteSelected() // remove selected elements
+canvas.getSelectedIds() // Set<ElementId>
+```
+
+## Events
+
+```ts
+canvas.on("change", ({ elements }) => {
+  /* elements changed */
+})
+canvas.on("viewportChange", ({ viewport }) => {
+  /* viewport moved/zoomed */
+})
+canvas.on("toolChange", ({ tool }) => {
+  /* active tool switched */
+})
+canvas.on("selectionChange", ({ selectedIds }) => {
+  /* selection changed */
+})
+
+canvas.off("change", handler)
+```
+
+## Snapping
+
+```ts
+const canvas = new AdrawCanvas({
+  container: el,
+  snapping: {
+    snapEnabled: true,
+    snapThreshold: 8,
+    gridEnabled: false,
+    gridSize: 20,
+  },
+})
+
+// update at runtime
+canvas.setSnappingConfig({ snapEnabled: false })
+canvas.getSnappingConfig()
+```
+
+## Headless usage
+
+Create an instance without a container for pure state management:
+
+```ts
+const canvas = new AdrawCanvas()
+canvas.handlePointerDown(x, y, event)
+canvas.handlePointerMove(x, y, event)
+canvas.handlePointerUp(x, y, event)
+// mount later
+canvas.mount(document.getElementById("app")!)
+```
+
+## Cleanup
+
+```ts
+canvas.destroy()
+```
+
+Disconnects the resize observer and removes the SVG element.
+
+## CSS variables
+
+| Variable                  | Default       | Description          |
+| ------------------------- | ------------- | -------------------- |
+| `--adraw-background`      | `#ffffff`     | Canvas background    |
+| `--adraw-stroke-color`    | `#000000`     | Default stroke color |
+| `--adraw-fill-color`      | `transparent` | Default fill color   |
+| `--adraw-selection-color` | `#4f46e5`     | Selection handles    |
+
+## License
+
+MIT
