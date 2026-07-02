@@ -1,6 +1,6 @@
 # @adraw/svelte
 
-Svelte bindings for adraw — stores and components for building canvas-based drawing and whiteboard UIs.
+Svelte bindings for adraw — components and composables for building canvas-based drawing and whiteboard UIs.
 
 ## Installation
 
@@ -11,87 +11,114 @@ pnpm add @adraw/svelte
 npm install @adraw/svelte
 ```
 
-Svelte 4 or later is required as a peer dependency.
+Svelte 5 or later is required as a peer dependency.
 
 ## Quick start
 
-Mount the canvas in `onMount`, then use the composable helpers across your component tree.
+Wrap the part of your app that needs the canvas with `CanvasProvider`, then render `Canvas` wherever you want the drawing surface. Each `CanvasProvider` creates its own isolated canvas instance, so you can mount as many independent boards as you like on the same page.
 
 ```svelte
 <script lang="ts">
-  import { onMount } from "svelte"
-  import { createCanvas, useTool } from "@adraw/svelte"
-
-  let container: HTMLDivElement
-
-  onMount(() => {
-    const { core } = createCanvas()
-    ;(window as any).__adrawSvelteCanvas = { core, state }
-    core.mount(container)
-  })
-
-  const { tool, setTool } = useTool()
+  import { Canvas, CanvasProvider, useTool } from "@adraw/svelte"
+  import Toolbar from "./Toolbar.svelte"
 </script>
 
-<div>
-  <button on:click={() => setTool("select")}>Select</button>
-  <button on:click={() => setTool("draw")}>Draw</button>
-</div>
-
-<div bind:this={container} style="width: 100%; height: 100vh;" />
+<CanvasProvider>
+  <Toolbar />
+  <Canvas style="flex: 1;" />
+</CanvasProvider>
 ```
 
-## API
+```svelte
+<!-- Toolbar.svelte -->
+<script lang="ts">
+  import { useTool } from "@adraw/svelte"
 
-### `createCanvas(options?)`
+  const tool = useTool()
+</script>
 
-Creates a canvas instance with reactive state. Returns `{ core, state }`.
-
-- `core` — the underlying `AdrawCanvas` instance
-- `state` — a plain reactive object with `elements`, `viewport`, `activeTool`, and `selectedIds`
-
-```ts
-const { core, state } = createCanvas({
-  snapping: { snapEnabled: true },
-})
-core.mount(containerEl)
+<button onclick={() => tool.setTool("select")} aria-pressed={tool.tool === "select"}>
+  Select
+</button>
+<button onclick={() => tool.setTool("draw")} aria-pressed={tool.tool === "draw"}>
+  Draw
+</button>
 ```
 
-### `Canvas(props)`
+## Components
 
-A component factory that handles `onMount` / `onDestroy` lifecycle internally. It stores the canvas on `window.__adrawSvelteCanvas` so sibling composables can access it.
+### `<CanvasProvider>`
+
+Sets up an isolated canvas context (via Svelte's context API) for its children. All composables and `<Canvas>` must be rendered inside it.
+
+```svelte
+<CanvasProvider options={{ snapping: { snapEnabled: true } }}>
+  {@render children()}
+</CanvasProvider>
+```
+
+| Prop      | Type                  | Description                        |
+| --------- | --------------------- | ---------------------------------- |
+| `options` | `CanvasSvelteOptions` | Initial snapping / viewport config |
+
+### `<Canvas>`
+
+Mounts the drawing surface. Fills its parent container (`width: 100%; height: 100%`).
+
+```svelte
+<Canvas class="my-canvas" style="border-radius: 8px;" />
+```
+
+| Prop    | Type     | Description   |
+| ------- | -------- | ------------- |
+| `class` | `string` | CSS class     |
+| `style` | `string` | Inline styles |
+
+## Composables
+
+All composables must be called inside `<CanvasProvider>` (in the top level of a component's `<script>`, same as any Svelte context consumer).
 
 ### `useCanvas()`
 
-Returns the global canvas instance stored on `window.__adrawSvelteCanvas`.
+Returns the raw context value: `state` (reactive `elements`, `viewport`, `activeTool`, `selectedIds`) and `instance` — a `{ current: AdrawCanvas | null }` ref to the underlying instance.
 
 ### `useTool()`
 
 ```ts
-const { tool, setTool } = useTool()
-// tool: getter — "select" | "hand" | "draw" | "eraser" | "rectangle" | "ellipse" | "media"
-setTool("eraser")
+const tool = useTool()
+// tool.tool: ToolType — "select" | "hand" | "draw" | "eraser" | "rectangle" | "ellipse" | "media"
+tool.setTool("draw")
 ```
 
 ### `useViewport()`
 
 ```ts
-const { viewport, setViewport, zoomIn, zoomOut, resetZoom, zoomToFit } =
-  useViewport()
-// viewport: getter — { x, y, zoom }
+const viewport = useViewport()
+// viewport.viewport: { x: number, y: number, zoom: number }
+viewport.zoomIn()
+viewport.zoomOut()
+viewport.resetZoom()
+viewport.zoomToFit()
 ```
 
 ### `useHistory()`
 
 ```ts
-const { undo, redo, canUndo, canRedo } = useHistory()
+const history = useHistory()
+history.undo()
+history.redo()
+history.canUndo()
+history.canRedo()
 ```
 
 ### `useSelection()`
 
 ```ts
-const { selectedIds, elements, selectAll, clearSelection, deleteSelected } =
-  useSelection()
+const selection = useSelection()
+// selection.selectedIds, selection.elements
+selection.selectAll()
+selection.clearSelection()
+selection.deleteSelected()
 ```
 
 ## License

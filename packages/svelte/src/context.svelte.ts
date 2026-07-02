@@ -1,0 +1,59 @@
+import type {
+  AdrawCanvas,
+  CanvasElement,
+  CanvasOptions,
+  ElementId,
+  ToolType,
+  ViewportState,
+} from "@adraw/core"
+import { getContext, setContext } from "svelte"
+
+export interface CanvasSvelteOptions extends CanvasOptions {}
+
+export interface CanvasState {
+  elements: Map<ElementId, CanvasElement>
+  viewport: ViewportState
+  activeTool: ToolType
+  selectedIds: Set<ElementId>
+}
+
+export interface CanvasContextValue {
+  instance: { current: AdrawCanvas | null }
+  options?: CanvasSvelteOptions
+  state: CanvasState
+}
+
+const CANVAS_CONTEXT_KEY = Symbol("adraw-canvas")
+
+export function createCanvasContext(
+  getOptions?: () => CanvasSvelteOptions | undefined,
+): CanvasContextValue {
+  const state = $state<CanvasState>({
+    activeTool: "select",
+    elements: new Map(),
+    selectedIds: new Set(),
+    viewport: { x: 0, y: 0, zoom: 1 },
+  })
+
+  const value: CanvasContextValue = {
+    instance: { current: null },
+    get options() {
+      return getOptions?.()
+    },
+    state,
+  }
+
+  setContext(CANVAS_CONTEXT_KEY, value)
+
+  return value
+}
+
+export function useCanvas(): CanvasContextValue {
+  const context = getContext<CanvasContextValue | undefined>(CANVAS_CONTEXT_KEY)
+
+  if (!context) {
+    throw new Error("useCanvas must be used within a CanvasProvider")
+  }
+
+  return context
+}

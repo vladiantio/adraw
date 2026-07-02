@@ -1,6 +1,7 @@
 allowBuilds:
   esbuild: true
   sharp: true
+  svelte-preprocess: true
 
 minimumReleaseAgeExclude:
   - astro@7.0.3
