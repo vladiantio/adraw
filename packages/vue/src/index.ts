@@ -6,7 +6,17 @@ import {
   type ToolType,
   type ViewportState,
 } from "@adraw/core"
-import { h, onMounted, onUnmounted, reactive, ref, type VNode } from "vue"
+import {
+  h,
+  inject,
+  onMounted,
+  onUnmounted,
+  provide,
+  reactive,
+  ref,
+  type InjectionKey,
+  type VNode,
+} from "vue"
 
 export interface CanvasVueOptions extends CanvasOptions {
   initialViewport?: ViewportState
@@ -17,6 +27,10 @@ export interface CanvasState {
   viewport: ViewportState
   activeTool: ToolType
   selectedIds: Set<ElementId>
+  // Bumped on every "change" event (draw, erase, undo, redo, delete). Read by
+  // useHistory() so canUndo/canRedo register a reactive dependency even
+  // though AdrawCanvas's own history stack isn't itself reactive.
+  historyVersion: number
 }
 
 export function createCanvas(options?: CanvasVueOptions) {
@@ -26,12 +40,14 @@ export function createCanvas(options?: CanvasVueOptions) {
   const state = reactive<CanvasState>({
     activeTool: core.getActiveTool(),
     elements: core.getElements(),
+    historyVersion: 0,
     selectedIds: core.getSelectedIds(),
     viewport: core.getViewport(),
   })
 
   core.on("change", ({ elements: newElements }) => {
     state.elements = new Map(newElements)
+    state.historyVersion++
   })
 
   core.on("viewportChange", ({ viewport: newViewport }) => {
@@ -53,63 +69,102 @@ export function createCanvas(options?: CanvasVueOptions) {
   }
 }
 
-export function useCanvas() {
-  return (window as any).__adrawVueCanvas
+export type CanvasContext = ReturnType<typeof createCanvas>
+
+// Each <CanvasProvider> provides its own context down its own subtree, so
+// composables resolve to whichever provider is nearest — this is what lets
+// multiple independent <CanvasProvider>/<Canvas> pairs coexist on one page.
+const canvasInjectionKey: InjectionKey<CanvasContext> = Symbol("adraw-canvas")
+
+export const CanvasProvider = {
+  props: {
+    options: Object,
+  },
+  setup(
+    props: { options?: CanvasVueOptions },
+    { slots }: { slots: { default?: () => VNode[] } },
+  ): () => VNode[] | undefined {
+    const canvas = createCanvas(props.options)
+    provide(canvasInjectionKey, canvas)
+
+    onUnmounted(() => {
+      canvas.vanilla.value?.destroy()
+    })
+
+    return () => slots.default?.()
+  },
+}
+
+// Resolves the nearest <CanvasProvider>. Must be called synchronously during
+// a component's setup() (directly, or from a composable invoked there) —
+// Vue's inject() only sees the active component instance at that point.
+export function useCanvas(): CanvasContext {
+  const context = inject(canvasInjectionKey, null)
+  if (!context) {
+    throw new Error("useCanvas must be used within a CanvasProvider")
+  }
+  return context
 }
 
 export function useTool() {
-  const { core, state } = useCanvas()
+  const canvas = useCanvas()
 
   return {
     setTool: (tool: ToolType) => {
-      core?.setActiveTool(tool)
+      canvas.core.setActiveTool(tool)
     },
     get tool() {
-      return state.activeTool
+      return canvas.state.activeTool
     },
   }
 }
 
 export function useViewport() {
-  const { core, state } = useCanvas()
+  const canvas = useCanvas()
 
   return {
-    resetZoom: () => core?.resetZoom(),
+    resetZoom: () => canvas.core.resetZoom(),
     setViewport: (viewport: ViewportState) => {
-      core?.setViewport(viewport)
+      canvas.core.setViewport(viewport)
     },
     get viewport() {
-      return state.viewport
+      return canvas.state.viewport
     },
-    zoomIn: () => core?.zoomIn(),
-    zoomOut: () => core?.zoomOut(),
-    zoomToFit: () => core?.zoomToFit(),
+    zoomIn: () => canvas.core.zoomIn(),
+    zoomOut: () => canvas.core.zoomOut(),
+    zoomToFit: () => canvas.core.zoomToFit(),
   }
 }
 
 export function useHistory() {
-  const { core } = useCanvas()
+  const canvas = useCanvas()
 
   return {
-    canRedo: () => core?.canRedo() ?? false,
-    canUndo: () => core?.canUndo() ?? false,
-    redo: () => core?.redo() ?? false,
-    undo: () => core?.undo() ?? false,
+    canRedo: () => {
+      void canvas.state.historyVersion
+      return canvas.core.canRedo()
+    },
+    canUndo: () => {
+      void canvas.state.historyVersion
+      return canvas.core.canUndo()
+    },
+    redo: () => canvas.core.redo(),
+    undo: () => canvas.core.undo(),
   }
 }
 
 export function useSelection() {
-  const { core, state } = useCanvas()
+  const canvas = useCanvas()
 
   return {
-    clearSelection: () => core?.clearSelection(),
-    deleteSelected: () => core?.deleteSelected(),
+    clearSelection: () => canvas.core.clearSelection(),
+    deleteSelected: () => canvas.core.deleteSelected(),
     get elements() {
-      return state.elements
+      return canvas.state.elements
     },
-    selectAll: () => core?.selectAll(),
+    selectAll: () => canvas.core.selectAll(),
     get selectedIds() {
-      return state.selectedIds
+      return canvas.state.selectedIds
     },
   }
 }
@@ -121,9 +176,7 @@ export const Canvas = {
   },
   setup(props: { class?: string; style?: Record<string, any> }): () => VNode {
     const containerRef = ref<HTMLDivElement | null>(null)
-    const canvas = createCanvas()
-
-    ;(window as any).__adrawVueCanvas = canvas
+    const canvas = useCanvas()
 
     onMounted(() => {
       if (!containerRef.value) {
@@ -132,10 +185,6 @@ export const Canvas = {
 
       canvas.core.mount(containerRef.value)
       canvas.vanilla.value = canvas.core
-    })
-
-    onUnmounted(() => {
-      canvas.vanilla.value?.destroy()
     })
 
     return () =>

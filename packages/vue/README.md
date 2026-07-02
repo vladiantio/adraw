@@ -15,41 +15,81 @@ Vue 3.0 or later is required as a peer dependency.
 
 ## Quick start
 
-Use the `Canvas` component to render the drawing surface. Composables access the canvas state anywhere in the tree.
+Wrap your app (or the part that needs the canvas) with `CanvasProvider`, then render the `Canvas` component wherever you want the drawing surface. Composables access the canvas state anywhere inside that provider.
 
 ```vue
 <script setup lang="ts">
-import { Canvas, useTool } from "@adraw/vue"
+import { Canvas, CanvasProvider, useTool } from "@adraw/vue"
+</script>
+
+<template>
+  <CanvasProvider>
+    <Toolbar />
+    <Canvas style="flex: 1" />
+  </CanvasProvider>
+</template>
+```
+
+```vue
+<!-- Toolbar.vue -->
+<script setup lang="ts">
+import { useTool } from "@adraw/vue"
 
 const { tool, setTool } = useTool()
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; height: 100vh">
-    <div>
-      <button :class="{ active: tool === 'select' }" @click="setTool('select')">
-        Select
-      </button>
-      <button :class="{ active: tool === 'draw' }" @click="setTool('draw')">
-        Draw
-      </button>
-      <button
-        :class="{ active: tool === 'rectangle' }"
-        @click="setTool('rectangle')"
-      >
-        Rectangle
-      </button>
-    </div>
-    <Canvas style="flex: 1" />
+  <div>
+    <button :class="{ active: tool === 'select' }" @click="setTool('select')">
+      Select
+    </button>
+    <button :class="{ active: tool === 'draw' }" @click="setTool('draw')">
+      Draw
+    </button>
+    <button
+      :class="{ active: tool === 'rectangle' }"
+      @click="setTool('rectangle')"
+    >
+      Rectangle
+    </button>
   </div>
+</template>
+```
+
+### Multiple canvases
+
+Each `CanvasProvider` creates its own isolated canvas instance, so nesting several `CanvasProvider`/`Canvas` pairs on the same page gives you independent canvases — composables called inside a given subtree always resolve to the nearest ancestor provider.
+
+```vue
+<template>
+  <CanvasProvider>
+    <Canvas />
+  </CanvasProvider>
+  <CanvasProvider>
+    <Canvas />
+  </CanvasProvider>
 </template>
 ```
 
 ## Components
 
+### `CanvasProvider`
+
+Creates the underlying canvas instance and makes it available to `Canvas` and all composables rendered inside it.
+
+```vue
+<CanvasProvider :options="{ snapping: { snapEnabled: true } }">
+  ...
+</CanvasProvider>
+```
+
+| Prop      | Type               | Description                        |
+| --------- | ------------------ | ---------------------------------- |
+| `options` | `CanvasVueOptions` | Initial snapping / viewport config |
+
 ### `Canvas`
 
-Mounts the drawing surface inside a `div` that fills its parent. Registers the canvas instance on `window.__adrawVueCanvas` so composables can access it.
+Mounts the drawing surface inside a `div` that fills its parent. Must be rendered inside a `CanvasProvider`.
 
 ```vue
 <Canvas class="my-canvas" :style="{ borderRadius: '8px' }" />
@@ -62,19 +102,21 @@ Mounts the drawing surface inside a `div` that fills its parent. Registers the c
 
 ## Composables
 
-All composables read from the canvas instance stored by `Canvas`. They should be called after the `Canvas` component has been mounted.
+All composables must be called inside a `CanvasProvider` — they throw if no provider is found in the ancestor tree.
 
 ### `createCanvas(options?)`
 
-Low-level factory. Returns `{ core, state, vanilla }`.
+Low-level factory used internally by `CanvasProvider`. Returns `{ core, state, vanilla }`.
 
 - `core` — the `AdrawCanvas` instance
 - `state` — a Vue `reactive` object with `elements`, `viewport`, `activeTool`, and `selectedIds`
 - `vanilla` — a `ref` to the `AdrawCanvas` instance (set after `core.mount()`)
 
+Call this directly only if you want to manage mounting/destruction yourself instead of using `CanvasProvider`/`Canvas`.
+
 ### `useCanvas()`
 
-Returns the canvas instance stored on `window.__adrawVueCanvas`.
+Returns the canvas context (`{ core, state, vanilla }`) provided by the nearest `CanvasProvider`. Throws if called outside one.
 
 ### `useTool()`
 
