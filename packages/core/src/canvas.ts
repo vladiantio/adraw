@@ -239,6 +239,11 @@ export class AdrawCanvas {
     this.activeTool = this.tools.get("select")!
     this.activeTool.onActivate(this.getToolContext())
 
+    // Seed the baseline checkpoint so the first edit can be undone back to the
+    // empty canvas. The top of the undo stack always mirrors the current
+    // committed state.
+    this.history = pushHistory(this.history, this.elements, this.selectedIds)
+
     if (options.container) {
       this.mount(options.container)
     }

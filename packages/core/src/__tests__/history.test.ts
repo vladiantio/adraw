@@ -45,8 +45,12 @@ describe("history", () => {
 
     it("clears redo stack on new action", () => {
       let state = createHistoryState()
+      // baseline + a change, so there is something to undo/redo
+      state = pushHistory(state, elements, selectedIds)
       state = pushHistory(state, elements, selectedIds)
       state = undo(state, elements, selectedIds)!.state
+      expect(state.redoStack).toHaveLength(1)
+
       state = pushHistory(state, elements, selectedIds)
 
       expect(state.redoStack).toHaveLength(0)
@@ -64,27 +68,42 @@ describe("history", () => {
   })
 
   describe("undo/redo", () => {
-    it("undo returns previous state", () => {
+    it("undo restores the previous committed state", () => {
       let state = createHistoryState()
-      const elements2 = new Map([["test", { id: "test" } as CanvasElement]])
+      const withTest = new Map([["test", { id: "test" } as CanvasElement]])
+
+      // baseline (empty) then a change that adds "test"
+      state = pushHistory(state, elements, selectedIds)
+      state = pushHistory(state, withTest, selectedIds)
+
+      const result = undo(state, withTest, selectedIds)
+
+      expect(result).not.toBeNull()
+      // undoing the change goes back to the empty baseline
+      expect(result!.elements.get("test")).toBeUndefined()
+      expect(result!.elements.size).toBe(0)
+    })
+
+    it("redo re-applies the undone state", () => {
+      let state = createHistoryState()
+      const withTest = new Map([["test", { id: "test" } as CanvasElement]])
 
       state = pushHistory(state, elements, selectedIds)
-      state = pushHistory(state, elements2, selectedIds)
+      state = pushHistory(state, withTest, selectedIds)
+      state = undo(state, withTest, selectedIds)!.state
 
-      const result = undo(state, elements2, selectedIds)
+      const result = redo(state, elements, selectedIds)
 
       expect(result).not.toBeNull()
       expect(result!.elements.get("test")).toBeDefined()
     })
 
-    it("redo returns next state", () => {
+    it("returns null when only the baseline remains", () => {
       let state = createHistoryState()
-
       state = pushHistory(state, elements, selectedIds)
-      state = undo(state, elements, selectedIds)!.state
-      const result = redo(state, elements, selectedIds)
+      const result = undo(state, elements, selectedIds)
 
-      expect(result).not.toBeNull()
+      expect(result).toBeNull()
     })
 
     it("returns null when nothing to undo", () => {
@@ -109,8 +128,16 @@ describe("history", () => {
       expect(canUndo(state)).toBe(false)
     })
 
-    it("canUndo returns true when has entries", () => {
+    it("canUndo returns false with only the baseline entry", () => {
       let state = createHistoryState()
+      state = pushHistory(state, elements, selectedIds)
+
+      expect(canUndo(state)).toBe(false)
+    })
+
+    it("canUndo returns true after a change on top of the baseline", () => {
+      let state = createHistoryState()
+      state = pushHistory(state, elements, selectedIds)
       state = pushHistory(state, elements, selectedIds)
 
       expect(canUndo(state)).toBe(true)
@@ -124,6 +151,7 @@ describe("history", () => {
 
     it("canRedo returns true after undo", () => {
       let state = createHistoryState()
+      state = pushHistory(state, elements, selectedIds)
       state = pushHistory(state, elements, selectedIds)
       state = undo(state, elements, selectedIds)!.state
 

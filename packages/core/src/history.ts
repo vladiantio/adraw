@@ -53,12 +53,15 @@ export function undo(
   elements: Map<ElementId, CanvasElement>
   selectedIds: Set<ElementId>
 } | null {
-  if (state.undoStack.length === 0) {
+  // The top of the undo stack mirrors the current committed state, so undoing
+  // requires at least one prior checkpoint underneath it to restore.
+  if (state.undoStack.length <= 1) {
     return null
   }
 
   const newUndoStack = [...state.undoStack]
-  const lastEntry = newUndoStack.pop()!
+  newUndoStack.pop()
+  const targetEntry = newUndoStack[newUndoStack.length - 1]
 
   const currentEntry: HistoryEntry = {
     elements: new Map(currentElements),
@@ -67,8 +70,8 @@ export function undo(
   }
 
   return {
-    elements: lastEntry.elements,
-    selectedIds: lastEntry.selectedIds,
+    elements: new Map(targetEntry.elements),
+    selectedIds: new Set(targetEntry.selectedIds),
     state: {
       maxSize: state.maxSize,
       redoStack: [...state.redoStack, currentEntry],
@@ -79,8 +82,8 @@ export function undo(
 
 export function redo(
   state: HistoryState,
-  currentElements: Map<ElementId, CanvasElement>,
-  currentSelectedIds: Set<ElementId>,
+  _currentElements: Map<ElementId, CanvasElement>,
+  _currentSelectedIds: Set<ElementId>,
 ): {
   state: HistoryState
   elements: Map<ElementId, CanvasElement>
@@ -91,27 +94,22 @@ export function redo(
   }
 
   const newRedoStack = [...state.redoStack]
-  const lastEntry = newRedoStack.pop()!
-
-  const currentEntry: HistoryEntry = {
-    elements: new Map(currentElements),
-    selectedIds: new Set(currentSelectedIds),
-    timestamp: Date.now(),
-  }
+  const targetEntry = newRedoStack.pop()!
 
   return {
-    elements: lastEntry.elements,
-    selectedIds: lastEntry.selectedIds,
+    elements: new Map(targetEntry.elements),
+    selectedIds: new Set(targetEntry.selectedIds),
     state: {
       maxSize: state.maxSize,
       redoStack: newRedoStack,
-      undoStack: [...state.undoStack, currentEntry],
+      // The restored state becomes the new current committed checkpoint.
+      undoStack: [...state.undoStack, targetEntry],
     },
   }
 }
 
 export function canUndo(state: HistoryState): boolean {
-  return state.undoStack.length > 0
+  return state.undoStack.length > 1
 }
 
 export function canRedo(state: HistoryState): boolean {
