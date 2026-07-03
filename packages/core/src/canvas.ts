@@ -1029,12 +1029,27 @@ export class AdrawCanvas {
     const elements = this.getElements()
     const selectedIds = this.getSelectedIds()
 
+    // This is the incremental path (used while the select tool is active), so it
+    // updates existing nodes in place rather than rebuilding. It must still drop
+    // DOM nodes for elements that no longer exist — e.g. when a selected element
+    // is deleted, the "change" handler routes here instead of renderElements().
+    // Snapshot into an array: `children` is a live collection and removing
+    // during iteration would skip nodes.
+    for (const child of this.elementsGroup.children) {
+      if (!elements.has(child.id)) {
+        child.remove()
+      }
+    }
+
     for (const [, element] of elements) {
       if (!element.visible) {
         continue
       }
 
-      const group = document.getElementById(element.id) as HTMLElement
+      const group = document.getElementById(element.id) as HTMLElement | null
+      if (!group) {
+        continue
+      }
       const isSelected = selectedIds.has(element.id)
       group.classList.toggle(selectedClass, isSelected)
 
