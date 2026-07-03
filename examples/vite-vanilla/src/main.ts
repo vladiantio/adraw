@@ -83,4 +83,12 @@ function updateToolbar() {
   })
 }
 
+// Keep the toolbar in sync when the tool changes from anywhere (e.g. keyboard
+// shortcuts), not only when a toolbar button is clicked.
+vanilla.on("toolChange", updateToolbar)
+
 updateToolbar()
+
+// Expose the canvas instance so end-to-end tests can assert on real state
+// (active tool, elements, viewport, history).
+;(globalThis as unknown as { adraw?: AdrawCanvas }).adraw = vanilla
