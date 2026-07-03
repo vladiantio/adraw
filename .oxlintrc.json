@@ -65,6 +65,12 @@
   },
   "overrides": [
     {
+      "files": ["*.tsx", "*.svelte", "*.vue", "*.astro"],
+      "rules": {
+        "no-unassigned-vars": "off"
+      }
+    },
+    {
       "files": ["*.svelte", "*.vue", "*.astro"],
       "rules": {
         "no-unused-vars": "off",
