@@ -15,11 +15,10 @@ SolidJS 1.0 or later is required as a peer dependency.
 
 ## Quick start
 
-Call `initCanvas` on mount to attach the drawing surface, then use the composable helpers anywhere in the component tree.
+Wrap your canvas UI in a `CanvasProvider` and render a `Canvas`. Each `CanvasProvider` owns its own `AdrawCanvas` instance, so you can mount as many independent canvases as you like — just nest more providers.
 
 ```tsx
-import { onMount } from "solid-js"
-import { initCanvas, useTool } from "@adraw/solid"
+import { Canvas, CanvasProvider, useTool } from "@adraw/solid"
 
 function Toolbar() {
   const { tool, setTool } = useTool()
@@ -32,43 +31,57 @@ function Toolbar() {
 }
 
 export default function App() {
-  let container!: HTMLDivElement
-
-  onMount(() => {
-    initCanvas(container)
-  })
-
   return (
-    <div
-      style={{ display: "flex", "flex-direction": "column", height: "100vh" }}
-    >
-      <Toolbar />
-      <div ref={container} style={{ flex: 1 }} />
-    </div>
+    <CanvasProvider>
+      <div
+        style={{ display: "flex", "flex-direction": "column", height: "100vh" }}
+      >
+        <Toolbar />
+        <Canvas style={{ flex: "1" }} />
+      </div>
+    </CanvasProvider>
   )
 }
 ```
 
-## API
+To render multiple independent canvases, use multiple `CanvasProvider`/`Canvas` pairs — each one mounts its own `AdrawCanvas` and the hooks below always talk to the nearest enclosing provider:
 
-### `createCanvas(options?)`
-
-Creates a reactive canvas instance. Returns `{ core, activeTool, elements, viewport, selectedIds }` where `activeTool`, `elements`, `viewport`, and `selectedIds` are SolidJS signals.
-
-```ts
-const { core, elements, viewport, activeTool, selectedIds } = createCanvas({
-  snapping: { snapEnabled: true },
-})
-core.mount(containerEl)
+```tsx
+<div style={{ display: "flex" }}>
+  <CanvasProvider>
+    <Toolbar />
+    <Canvas style={{ flex: "1" }} />
+  </CanvasProvider>
+  <CanvasProvider>
+    <Toolbar />
+    <Canvas style={{ flex: "1" }} />
+  </CanvasProvider>
+</div>
 ```
 
-### `initCanvas(container, options?)`
+## API
 
-Convenience function that calls `createCanvas`, mounts into `container`, stores the instance globally, and returns the `AdrawCanvas` core. Use this for the common single-canvas case.
+### `CanvasProvider`
+
+```tsx
+<CanvasProvider options={{ snapping: { snapEnabled: true } }}>
+  {/* ... */}
+</CanvasProvider>
+```
+
+Creates and owns an `AdrawCanvas` instance, scoped to its children via SolidJS context. `options` accepts `CanvasOptions` from `@adraw/core` plus `initialViewport`.
+
+### `Canvas`
+
+```tsx
+<Canvas class="my-canvas" style={{ background: "white" }} />
+```
+
+Renders the container element and mounts the `AdrawCanvas` from the nearest `CanvasProvider` into it on mount, tearing it down on cleanup.
 
 ### `useCanvas()`
 
-Returns the global canvas instance created by `initCanvas`.
+Returns the raw context value (`vanillaRef`, reactive accessors, and the resolved `options`) for the nearest `CanvasProvider`. Throws if used outside one.
 
 ### `useTool()`
 

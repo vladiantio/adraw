@@ -50,6 +50,7 @@
     "@adraw/core": "workspace:*"
   },
   "devDependencies": {
+    "rolldown-plugin-solid": "^0.2.1",
     "solid-js": "^1.9.11"
   },
   "peerDependencies": {
