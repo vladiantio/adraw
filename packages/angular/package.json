@@ -1,0 +1,52 @@
+{
+  "name": "@adraw/angular",
+  "version": "0.1.0",
+  "description": "Angular bindings for adraw — a service, component, and injectable hooks for building canvas-based drawing and whiteboard UIs.",
+  "keywords": [
+    "angular",
+    "canvas",
+    "drawing",
+    "infinite",
+    "javascript",
+    "typescript",
+    "whiteboard"
+  ],
+  "homepage": "https://github.com/vladiantio/adraw/tree/main/packages/angular#readme",
+  "bugs": {
+    "url": "https://github.com/vladiantio/adraw/issues"
+  },
+  "license": "MIT",
+  "author": "Vladimir Antonio F. C.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladiantio/adraw.git",
+    "directory": "packages/angular"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "module": "./dist/fesm2022/adraw-angular.mjs",
+  "typings": "./dist/types/adraw-angular.d.ts",
+  "publishConfig": {
+    "directory": "./dist",
+    "linkDirectory": false
+  },
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json && node scripts/finalize-dist.mjs",
+    "dev": "ng-packagr -p ng-package.json --watch"
+  },
+  "dependencies": {
+    "@adraw/core": "workspace:*",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/compiler-cli": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "ng-packagr": "^21.0.0"
+  },
+  "peerDependencies": {
+    "@angular/common": ">=17.0.0",
+    "@angular/core": ">=17.0.0"
+  }
+}

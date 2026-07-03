@@ -1,0 +1,15 @@
+import type { CanvasOptions } from "@adraw/core"
+import { InjectionToken } from "@angular/core"
+
+// Kept as its own interface (even though it adds nothing yet) so app code and
+// provideCanvas() have a stable, framework-named options type — mirrors the
+// CanvasReactOptions / CanvasVueOptions / CanvasSolidOptions in the other
+// adapters.
+export interface CanvasAngularOptions extends CanvasOptions {}
+
+// Optional DI token read by CanvasService's constructor. provideCanvas() only
+// registers it when options are passed, so the service falls back to defaults
+// when the token is absent (injected with { optional: true }).
+export const CANVAS_OPTIONS = new InjectionToken<CanvasAngularOptions>(
+  "adraw-canvas-options",
+)
