@@ -97,6 +97,11 @@ pnpm dev:all
 # Run tests
 pnpm test
 
+# End-to-end tests (Playwright)
+pnpm test:e2e:install  # download browsers + OS deps (one-time)
+pnpm test:e2e          # run Playwright tests
+pnpm test:e2e:ui       # run with the Playwright UI
+
 # Lint and format
 pnpm lint        # check
 pnpm lint:fix    # auto-fix

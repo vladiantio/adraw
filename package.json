@@ -17,9 +17,13 @@
     "lint": "oxlint && oxfmt --check",
     "lint:fix": "(oxlint --fix || true) && oxfmt",
     "lint:github": "oxlint --format=github",
-    "test": "vitest"
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install --with-deps",
+    "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "oxfmt": "^0.56.0",
     "oxlint": "^1.71.0",
     "tsdown": "0.22.3",
