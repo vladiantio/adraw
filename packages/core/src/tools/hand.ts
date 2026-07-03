@@ -35,24 +35,14 @@ export function createHandTool(): Tool {
         return
       }
 
-      const movementX =
-        event.movementX !== undefined &&
-        event.movementX !== 0 &&
-        !Number.isNaN(event.movementX)
-          ? event.movementX
-          : lastPoint
-            ? event.clientX - lastPoint.x || 0
-            : null
-      const movementY =
-        event.movementY !== undefined &&
-        event.movementY !== 0 &&
-        !Number.isNaN(event.movementY)
-          ? event.movementY
-          : lastPoint
-            ? event.clientY - lastPoint.y || 0
-            : null
+      // Derive movement from the client-position delta so the pan tracks the
+      // pointer exactly. `event.movementX/Y` is unreliable across browsers, and
+      // gating on both axes being non-zero would drop any purely horizontal or
+      // vertical drag.
+      const movementX = event.clientX - lastPoint.x
+      const movementY = event.clientY - lastPoint.y
 
-      if (!movementX || !movementY) {
+      if (movementX === 0 && movementY === 0) {
         return
       }
 
