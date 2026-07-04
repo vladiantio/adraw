@@ -110,6 +110,20 @@ To add support for another framework (a new `packages/<framework>`), match the e
 - Add a matching `examples/vite-<framework>` app that imports the new package, following the layout of the other `examples/vite-*` apps.
 - Run `pnpm --filter=<framework> build` and `pnpm lint` before considering the adapter done.
 
+**Angular is a special case (`packages/angular`)**
+
+Angular can't follow the tsdown recipe above — a consumable Angular library needs the Angular compiler's partial-Ivy output. It mirrors the same public surface (component-scoped `CanvasService` via `provideCanvas()`, `useCanvas/useTool/useViewport/useHistory/useSelection` as `inject()`-based hooks) but the build/packaging differs:
+
+- **Build tool is `ng-packagr`, not tsdown.** `scripts`: `"build": "ng-packagr -p ng-package.json"`, `"dev": "ng-packagr -p ng-package.json --watch"`. Config lives in `ng-package.json` (`dest: "./dist"`, `lib.entryFile: "src/public-api.ts"`, and `allowedNonPeerDependencies: ["@adraw/core"]` so ng-packagr stops erroring on the non-peer workspace dep).
+- **`tsconfig.json` does NOT extend `../../tsconfig.json`** — the root's `erasableSyntaxOnly`, `verbatimModuleSyntax`, `noEmit`, and `allowImportingTsExtensions` all conflict with Angular decorators / ng-packagr emit. Use a standalone tsconfig (`useDefineForClassFields: false`, `experimentalDecorators: false`) with `angularCompilerOptions.compilationMode: "partial"`.
+- **Pin Angular `^21` in devDeps.** Angular 20's `compiler-cli` peers on TypeScript `<5.9`; the repo is on 5.9.x, so v21 is the first compatible major. Peer range is `>=17.0.0` (standalone + signals).
+- **`tslib` is a required runtime `dependency`.** ng-packagr forces `importHelpers: true` (it overrides the project tsconfig — `importHelpers: false` is ignored), so the partial compiler emits helper refs and the build dies with `TS2354` if tslib is absent. It does _not_ appear in the final FESM (the linker rewrites decorators to static `ɵcmp`/`ɵprov`), so grepping the bundle misleadingly shows it "unused" — do not remove it.
+- **Source manifest entry points:** ng-packagr writes the real `exports`/`module`/`typings` into `dist/package.json`, but pnpm links the _source_ dir, so the source `package.json` must also carry `module` + `typings` pointing at `./dist/...` — without them a consumer/example fails with rollup "Failed to resolve entry for package". Keep it to `module` + `typings`: adding an `exports` map in the source manifest makes ng-packagr print benign `WARNING: Found a conflicting export condition … would be overridden` for every condition it regenerates (Vite falls back to `module` when there's no `exports`, so the map buys nothing locally).
+- **`pnpm-workspace.yaml` `allowBuilds`** needs `@parcel/watcher` (ng-packagr watch) plus `lmdb` and `msgpackr-extract` (`@angular/build`, pulled in by the example's Analog plugin) — otherwise `pnpm --filter build` fails its pre-run deps check with `ERR_PNPM_IGNORED_BUILDS`.
+- **`.oxlintrc.json`** has a scoped override for `packages/angular/**` + `examples/vite-angular/**` turning off `new-cap` (fires on `@Component()`/`@Injectable()` decorators) and `typescript/no-extraneous-class` (empty root component).
+- **The example** (`examples/vite-angular`) runs Angular in Vite via `@analogjs/vite-plugin-angular` (zoneless, signal-based), not the Angular CLI. The plugin defaults to reading `tsconfig.app.json`, so provide one (extending the app `tsconfig.json`, `include: ["src"]`).
+- Reactive values are returned as **signals** (Angular's reactivity primitive) — read them by calling them, including in templates (`tool()`).
+
 ### Element types
 
 Defined in `src/types.ts`. All elements extend `BaseElement` (id, x, y, width, height, rotation, zIndex, locked, visible). Factory functions in `src/elements.ts` (`createRectangle`, `createEllipse`, `createPath`, `createMedia`, etc.) auto-generate IDs.
