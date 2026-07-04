@@ -77,6 +77,13 @@
         "typescript/consistent-type-imports": "off",
         "prefer-const": "off"
       }
+    },
+    {
+      "files": ["packages/angular/**/*.ts", "examples/vite-angular/**/*.ts"],
+      "rules": {
+        "new-cap": "off",
+        "typescript/no-extraneous-class": "off"
+      }
     }
   ]
 }
