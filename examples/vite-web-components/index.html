@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>adraw — Web Components (demo)</title>
+  </head>
+  <body>
+    <div id="app">
+      <div class="toolbar">
+        <button data-tool="select" title="Select (V)">Select</button>
+        <button data-tool="hand" title="Hand (H)">Hand</button>
+        <button data-tool="rectangle" title="Rectangle (R)">Rectangle</button>
+        <button data-tool="ellipse" title="Ellipse (E)">Ellipse</button>
+        <button data-tool="draw" title="Draw (D)">Draw</button>
+        <button data-tool="eraser" title="Eraser (E)">Eraser</button>
+        <div class="separator"></div>
+        <button data-action="undo" title="Undo (Ctrl+Z)">Undo</button>
+        <button data-action="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
+        <div class="separator"></div>
+        <button data-action="zoom-in" title="Zoom In">+</button>
+        <button data-action="zoom-out" title="Zoom Out">-</button>
+        <button data-action="zoom-fit" title="Zoom to Fit">Fit</button>
+        <button data-action="reset" title="Reset">Reset</button>
+      </div>
+      <adraw-canvas></adraw-canvas>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
