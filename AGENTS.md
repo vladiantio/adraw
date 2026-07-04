@@ -124,6 +124,15 @@ Angular can't follow the tsdown recipe above — a consumable Angular library ne
 - **The example** (`examples/vite-angular`) runs Angular in Vite via `@analogjs/vite-plugin-angular` (zoneless, signal-based), not the Angular CLI. The plugin defaults to reading `tsconfig.app.json`, so provide one (extending the app `tsconfig.json`, `include: ["src"]`).
 - Reactive values are returned as **signals** (Angular's reactivity primitive) — read them by calling them, including in templates (`tool()`).
 
+**Web Components is a special case (`packages/web-components`)**
+
+Web Components have no framework runtime, reactive primitive, or component tree — the custom element itself is the idiomatic handle. It still follows the tsdown recipe (build/packaging identical to `react`/`solid`/`svelte`) and has **no framework peer dependency** (no `devDependencies`/`peerDependencies` for a framework — it's native DOM), but it deliberately **skips the shared `useCanvas/useTool/useViewport/useHistory/useSelection` hook surface**:
+
+- **No hooks.** In every other adapter the hooks bridge core state into a reactivity system; Web Components has none, so element-argument hooks (`useTool(el)`) would be pure wrappers over `el.canvas?.setActiveTool(...)` and the mirrored fields — redundant. Drive the canvas through `element.canvas` (the `AdrawCanvas` instance, carrying the full API) and read state from the element's mirrored fields directly. Do **not** re-add the hooks to "match" the other adapters.
+- **The element is the whole public surface.** `AdrawCanvasElement` (`src/element.ts`, registered via `defineAdrawCanvas(tagName?)`) still does the standard adapter job: one headless `AdrawCanvas` created on `connectedCallback` / `destroy()`d on `disconnectedCallback`, instance kept out of any reactive store, and the four core events mirrored onto public fields (`elements`, `viewport`, `activeTool`, `selectedIds`) copying each payload (`new Map`/`new Set`).
+- **Events, not subscriptions, signal changes.** Core events are re-dispatched as `adraw:*` `CustomEvent`s (`adraw:change`, `adraw:viewportchange`, `adraw:toolchange`, `adraw:selectionchange`) whose `detail` carries the mirrored value — consumers listen to these to know when to re-read the fields (the example wires `adraw:toolchange` to refresh the toolbar).
+- **No `Canvas` component either** — the element _is_ the mount container; consumers place `<adraw-canvas>` in markup (or `new AdrawCanvasElement()`), setting `.options` before connect for snapping/viewport config.
+
 ### Element types
 
 Defined in `src/types.ts`. All elements extend `BaseElement` (id, x, y, width, height, rotation, zIndex, locked, visible). Factory functions in `src/elements.ts` (`createRectangle`, `createEllipse`, `createPath`, `createMedia`, etc.) auto-generate IDs.
