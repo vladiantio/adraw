@@ -1,0 +1,52 @@
+{
+  "name": "@adraw/web-components",
+  "version": "0.1.0",
+  "description": "Web Components bindings for adraw — a framework-agnostic custom element and hooks for building canvas-based drawing and whiteboard UIs.",
+  "keywords": [
+    "canvas",
+    "custom-elements",
+    "drawing",
+    "infinite",
+    "javascript",
+    "typescript",
+    "web-components",
+    "whiteboard"
+  ],
+  "homepage": "https://github.com/vladiantio/adraw/tree/main/packages/web-components#readme",
+  "bugs": {
+    "url": "https://github.com/vladiantio/adraw/issues"
+  },
+  "license": "MIT",
+  "author": "Vladimir Antonio F. C.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladiantio/adraw.git",
+    "directory": "packages/web-components"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsdown --minify",
+    "dev": "tsdown --watch"
+  },
+  "dependencies": {
+    "@adraw/core": "workspace:*"
+  }
+}
