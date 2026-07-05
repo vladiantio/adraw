@@ -58,7 +58,6 @@ type EventListener<K extends keyof CanvasEventMap> = (
 const svgNamespaceURI = "http://www.w3.org/2000/svg"
 const elementsGroupClass = "adraw-elements-group"
 const elementClass = "adraw-element"
-const temporaryGroupClass = "adraw-temporary-group"
 const temporaryClass = "adraw-temporary"
 const guidesGroupClass = "adraw-guides-group"
 const selectedClass = "adraw-selected"
@@ -214,7 +213,9 @@ export class AdrawCanvas {
   private container: HTMLElement | null = null
   private svgElement: SVGSVGElement | null = null
   private elementsGroup: SVGGElement | null = null
-  private temporaryGroup: SVGGElement | null = null
+  // The in-progress element (from the active tool) is rendered directly into
+  // `elementsGroup`; this tracks its node so it can be updated/removed in place.
+  private temporaryNode: SVGGElement | null = null
   private guidesGroup: SVGGElement | null = null
   private transformOverlay: SVGGElement | null = null
   private resizeObserver: ResizeObserver | null = null
@@ -617,9 +618,6 @@ export class AdrawCanvas {
     this.elementsGroup = document.createElementNS(svgNamespaceURI, "g")
     this.elementsGroup.classList.add(elementsGroupClass)
 
-    this.temporaryGroup = document.createElementNS(svgNamespaceURI, "g")
-    this.temporaryGroup.classList.add(temporaryGroupClass)
-
     this.guidesGroup = document.createElementNS(svgNamespaceURI, "g")
     this.guidesGroup.classList.add(guidesGroupClass)
 
@@ -627,7 +625,6 @@ export class AdrawCanvas {
     this.transformOverlay.classList.add(transformOverlayClass)
 
     this.svgElement.appendChild(this.elementsGroup)
-    this.svgElement.appendChild(this.temporaryGroup)
     this.svgElement.appendChild(this.guidesGroup)
     this.svgElement.appendChild(this.transformOverlay)
     this.container.appendChild(this.svgElement)
@@ -819,7 +816,7 @@ export class AdrawCanvas {
       if (this.getActiveTool() === "select") {
         this.selectElements()
       } else {
-        this.renderElements()
+        this.reconcileElements()
       }
     })
 
@@ -874,11 +871,7 @@ export class AdrawCanvas {
     const viewport = this.getViewport()
     const transform = `translate(${this.container.clientWidth / 2}, ${this.container.clientHeight / 2}) scale(${viewport.zoom}) translate(${-viewport.x}, ${-viewport.y})`
 
-    for (const group of [
-      this.elementsGroup,
-      this.temporaryGroup,
-      this.transformOverlay,
-    ]) {
+    for (const group of [this.elementsGroup, this.transformOverlay]) {
       group?.setAttribute("transform", transform)
     }
 
@@ -983,41 +976,108 @@ export class AdrawCanvas {
     }
   }
 
-  private renderElements(): void {
+  // Reconcile `elementsGroup` with the current elements without wiping it: add
+  // nodes for new elements, update existing ones in place, and drop nodes for
+  // elements that no longer exist. This keeps untouched elements' DOM nodes
+  // intact when a new element is added (rather than rebuilding the whole group).
+  private reconcileElements(): void {
     if (!this.elementsGroup) {
       return
     }
 
-    this.elementsGroup.innerHTML = ""
     const elements = this.getElements()
     const selectedIds = this.getSelectedIds()
 
+    // Drop nodes for elements that no longer exist, leaving the temporary node
+    // (which has no matching entry in `elements`) untouched. Iterate backwards:
+    // `children` is live, so removing during a forward loop would skip nodes.
+    const children = this.elementsGroup.children
+    for (let i = children.length - 1; i >= 0; i--) {
+      const child = children[i]
+      if (child === this.temporaryNode) {
+        continue
+      }
+      if (!elements.has(child.id)) {
+        child.remove()
+      }
+    }
+
     for (const [, element] of elements) {
+      let group = document.getElementById(element.id) as SVGGElement | null
+
       if (!element.visible) {
+        group?.remove()
         continue
       }
 
-      const group = createElementGroup(element)
-      const isSelected = selectedIds.has(element.id)
-      group.classList.add(elementClass)
-      group.classList.toggle(selectedClass, isSelected)
+      if (group) {
+        this.updateElementGeometry(group, element)
+      } else {
+        group = createElementGroup(element)
+        group.classList.add(elementClass)
+        this.elementsGroup.appendChild(group)
+      }
 
-      this.elementsGroup.appendChild(group)
+      group.classList.toggle(selectedClass, selectedIds.has(element.id))
     }
   }
 
   private renderTemporary(): void {
-    if (!this.temporaryGroup) {
+    if (!this.elementsGroup) {
       return
     }
 
-    this.temporaryGroup.innerHTML = ""
-    const tempElement = this.getTemporaryElement()
+    // The temporary element lives inside `elementsGroup` (on top, as the last
+    // child). Rebuild only that single node, leaving committed elements intact.
+    this.temporaryNode?.remove()
+    this.temporaryNode = null
 
+    const tempElement = this.getTemporaryElement()
     if (tempElement) {
       const group = createElementGroup(tempElement)
       group.classList.add(temporaryClass)
-      this.temporaryGroup.appendChild(group)
+      this.temporaryNode = group
+      this.elementsGroup.appendChild(group)
+    }
+  }
+
+  // Update an existing element's DOM node (transform + type-specific geometry)
+  // in place, without recreating it.
+  private updateElementGeometry(
+    group: SVGGElement,
+    element: CanvasElement,
+  ): void {
+    group.setAttribute("transform", getTransformElementAttribute(element))
+
+    switch (element.type) {
+      case "path": {
+        const pathElement = group.getElementsByTagName("path")[0]
+        pathElement.setAttribute(
+          "d",
+          pointsToPath(element.points, element.smoothing),
+        )
+        break
+      }
+      case "rectangle": {
+        const rectElement = group.getElementsByTagName("rect")[0]
+        rectElement.setAttribute("width", String(element.width))
+        rectElement.setAttribute("height", String(element.height))
+        break
+      }
+      case "ellipse": {
+        const ellipseElement = group.getElementsByTagName("ellipse")[0]
+        ellipseElement.setAttribute("cx", String(element.width / 2))
+        ellipseElement.setAttribute("cy", String(element.height / 2))
+        ellipseElement.setAttribute("rx", String(element.width / 2))
+        ellipseElement.setAttribute("ry", String(element.height / 2))
+        break
+      }
+      case "media": {
+        const imageElement = group.getElementsByTagName("image")[0]
+        imageElement.setAttribute("width", String(element.width))
+        imageElement.setAttribute("height", String(element.height))
+        break
+      }
     }
   }
 
@@ -1032,7 +1092,7 @@ export class AdrawCanvas {
     // This is the incremental path (used while the select tool is active), so it
     // updates existing nodes in place rather than rebuilding. It must still drop
     // DOM nodes for elements that no longer exist — e.g. when a selected element
-    // is deleted, the "change" handler routes here instead of renderElements().
+    // is deleted, the "change" handler routes here instead of reconcileElements().
     // Snapshot into an array: `children` is a live collection and removing
     // during iteration would skip nodes.
     for (const child of this.elementsGroup.children) {
@@ -1046,7 +1106,7 @@ export class AdrawCanvas {
         continue
       }
 
-      const group = document.getElementById(element.id) as HTMLElement | null
+      const group = document.getElementById(element.id) as SVGGElement | null
       if (!group) {
         continue
       }
@@ -1056,34 +1116,10 @@ export class AdrawCanvas {
       if (!isSelected) {
         continue
       }
-      group.setAttribute("transform", getTransformElementAttribute(element))
 
-      switch (element.type) {
-        case "path": {
-          // The select tool already transforms the points in canvas space, so
-          // just re-render the path data from the current element state.
-          const pathElement = group.getElementsByTagName("path")[0]
-          pathElement.setAttribute(
-            "d",
-            pointsToPath(element.points, element.smoothing),
-          )
-          break
-        }
-        case "rectangle": {
-          const rectElement = group.getElementsByTagName("rect")[0]
-          rectElement.setAttribute("width", String(element.width))
-          rectElement.setAttribute("height", String(element.height))
-          break
-        }
-        case "ellipse": {
-          const ellipseElement = group.getElementsByTagName("ellipse")[0]
-          ellipseElement.setAttribute("cx", String(element.width / 2))
-          ellipseElement.setAttribute("cy", String(element.height / 2))
-          ellipseElement.setAttribute("rx", String(element.width / 2))
-          ellipseElement.setAttribute("ry", String(element.height / 2))
-          break
-        }
-      }
+      // The select tool already transforms geometry in canvas space, so just
+      // re-render each node from the current element state.
+      this.updateElementGeometry(group, element)
     }
   }
 
