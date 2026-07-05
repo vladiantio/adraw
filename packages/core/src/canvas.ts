@@ -43,6 +43,10 @@ import {
 export interface CanvasOptions {
   snapping?: Partial<SnappingConfig>
   initialViewport?: ViewportState
+  // Hide the selection bounding box + resize/rotation handles while a
+  // resize/rotation gesture is in progress, so the overlay doesn't lag the
+  // element mid-gesture; it reappears on pointer up. Defaults to `true`.
+  hideOverlayWhileTransforming?: boolean
 }
 
 export interface AdrawCanvasOptions extends CanvasOptions {
@@ -215,6 +219,7 @@ export class AdrawCanvas {
   private viewport: ViewportState
   private activeTool: Tool
   private snappingConfig: SnappingConfig
+  private hideOverlayWhileTransforming: boolean
   private history = createHistoryState()
   private listeners = new Map<keyof CanvasEventMap, Set<EventListener<any>>>()
   private canvasSize: { width: number; height: number } = {
@@ -245,6 +250,8 @@ export class AdrawCanvas {
   constructor(options: AdrawCanvasOptions = {}) {
     this.viewport = createViewport(options.initialViewport)
     this.snappingConfig = createSnappingConfig(options.snapping)
+    this.hideOverlayWhileTransforming =
+      options.hideOverlayWhileTransforming ?? false
 
     this.tools.set("select", createSelectTool())
     this.tools.set("hand", createHandTool())
@@ -339,6 +346,17 @@ export class AdrawCanvas {
 
   setSnappingConfig(config: Partial<SnappingConfig>): void {
     this.snappingConfig = { ...this.snappingConfig, ...config }
+  }
+
+  getHideOverlayWhileTransforming(): boolean {
+    return this.hideOverlayWhileTransforming
+  }
+
+  setHideOverlayWhileTransforming(hide: boolean): void {
+    this.hideOverlayWhileTransforming = hide
+    // Re-render so the overlay reflects the change immediately (e.g. toggled
+    // mid-gesture).
+    this.render()
   }
 
   canUndo(): boolean {
@@ -943,7 +961,11 @@ export class AdrawCanvas {
 
     // Hide the bounding box + handles while actively resizing/rotating so the
     // overlay doesn't lag the element mid-gesture; it reappears on pointer up.
-    if (this.activeTool.isTransforming?.()) {
+    // Opt out via the `hideOverlayWhileTransforming` option.
+    if (
+      this.hideOverlayWhileTransforming &&
+      this.activeTool.isTransforming?.()
+    ) {
       return
     }
 
