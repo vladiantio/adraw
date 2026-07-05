@@ -71,6 +71,7 @@ const selectedClass = "adraw-selected"
 const transformOverlayClass = "adraw-transform-overlay"
 const rotationHandleClass = "adraw-rotation-handle"
 const resizeHandleClass = "adraw-resize-handle"
+const resizeEdgeClass = "adraw-resize-edge"
 const selectionBoxClass = "adraw-selection-box"
 
 const boundingBoxStrokeWidth = 2
@@ -981,16 +982,47 @@ export class AdrawCanvas {
     rect.setAttribute("vector-effect", "non-scaling-stroke")
     overlay.appendChild(rect)
 
+    // Invisible edge bands — dragging an edge resizes along that axis. They
+    // carry the `*-center` anchors so the select tool's existing resize logic
+    // handles them exactly like the old edge-center handles did.
+    const edges = [
+      { anchor: "top-center", x1: x, x2: x + width, y1: y, y2: y },
+      {
+        anchor: "right-center",
+        x1: x + width,
+        x2: x + width,
+        y1: y,
+        y2: y + height,
+      },
+      {
+        anchor: "bottom-center",
+        x1: x,
+        x2: x + width,
+        y1: y + height,
+        y2: y + height,
+      },
+      { anchor: "left-center", x1: x, x2: x, y1: y, y2: y + height },
+    ]
+    for (const edge of edges) {
+      const line = document.createElementNS(svgNamespaceURI, "line")
+      line.classList.add(resizeEdgeClass)
+      line.setAttribute("x1", `${edge.x1}`)
+      line.setAttribute("y1", `${edge.y1}`)
+      line.setAttribute("x2", `${edge.x2}`)
+      line.setAttribute("y2", `${edge.y2}`)
+      line.setAttribute("stroke", "transparent")
+      line.setAttribute("stroke-width", `${handleSize}`)
+      line.setAttribute("pointer-events", "stroke")
+      line.setAttribute("data-anchor", edge.anchor)
+      overlay.appendChild(line)
+    }
+
     // Handle positions
     const handles = [
       { anchor: "top-left", x, y },
-      { anchor: "top-center", x: x + width / 2, y },
       { anchor: "top-right", x: x + width, y },
-      { anchor: "right-center", x: x + width, y: y + height / 2 },
       { anchor: "bottom-right", x: x + width, y: y + height },
-      { anchor: "bottom-center", x: x + width / 2, y: y + height },
       { anchor: "bottom-left", x, y: y + height },
-      { anchor: "left-center", x, y: y + height / 2 },
     ]
 
     // Rotation handle
