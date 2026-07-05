@@ -41,7 +41,7 @@ This is a pnpm monorepo. Workspaces: `packages/*`, `examples/*`, `web`.
 A single **`AdrawCanvas` class** (`src/canvas.ts`) holds both the pure logic and the DOM adapter:
 
 - **State/logic**: elements, viewport, tool state, and history. Emits typed events (`change`, `viewportChange`, `toolChange`, `selectionChange`) via a lightweight `on`/`off`/`emit` system. This part works headless.
-- **DOM adapter**: creates and manages an `<svg>` inside a container `HTMLElement`, wires pointer/wheel/touch/keyboard events, and re-renders SVG on every state change.
+- **DOM adapter**: creates and manages an `<svg>` inside a container `HTMLElement`, wires pointer/wheel/touch/keyboard events, and updates SVG on every state change.
 
 Construct with `new AdrawCanvas({ container })` to mount immediately, or `new AdrawCanvas()` for a headless instance and call `mount(container)` later (e.g. framework bindings build state during component setup, then `mount` on the container at mount time). `destroy()` tears down the DOM.
 
@@ -140,6 +140,15 @@ Defined in `src/types.ts`. All elements extend `BaseElement` (id, x, y, width, h
 ### Rendering
 
 `AdrawCanvas` renders elements to SVG using `createElementGroup` (`src/canvas.ts`). Styling uses CSS custom properties: `--adraw-stroke-color`, `--adraw-fill-color`, `--adraw-background`, `--adraw-selection-color`. The transform overlay (selection handles, rotation handle) is rendered in a separate `<g>` layer on top.
+
+Committed elements live in a single `.adraw-elements-group` `<g>`; the SVG has just two child layers, that elements group plus the transform overlay (there is **no** separate temporary group). Rendering is **incremental — never `innerHTML = ""` on the elements group**:
+
+- **`reconcileElements()`** is the `"change"` path for non-`select` tools. It diffs the DOM against the current element map: drops nodes for elements that no longer exist (iterating `children` backwards, since it's a live collection), creates + appends nodes for new elements, and updates existing nodes in place. So adding one element does **not** re-render the others — their DOM nodes are left untouched.
+- **`selectElements()`** is the `"change"`/`"selectionChange"` path while the `select` tool is active — same incremental drop-missing logic, but it only re-geometries the currently selected nodes (drag performance).
+- **`updateElementGeometry(group, element)`** is the shared in-place update helper (transform + type-specific attrs for path/rectangle/ellipse/media) used by both of the above.
+- **`renderTemporary()`** renders the active tool's in-progress element (`getTemporaryElement()`) directly into `.adraw-elements-group` as its last child (so it sits on top), tracked by the `temporaryNode` field (with `temporaryType` remembering its element type). It **reuses that one node** across pointer moves — while the type is unchanged it updates it in place via `updateElementGeometry` rather than recreating it; it only builds a fresh node when there is none yet or the type changed, and removes it when there's no temporary element. Committed elements are left intact. On commit, the tool adds the real element to the map (→ `reconcileElements` appends its node) and clears its temporary element (→ next `renderTemporary` drops the temp node).
+
+The temporary node carries the `.adraw-temporary` class but **not** `.adraw-element`, so it isn't counted as a committed element (the e2e specs rely on this).
 
 ## Tests
 
