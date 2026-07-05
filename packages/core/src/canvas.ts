@@ -240,6 +240,20 @@ export class AdrawCanvas {
   private temporaryType: CanvasElement["type"] | null = null
   private guidesGroup: SVGGElement | null = null
   private transformOverlay: SVGGElement | null = null
+  // Persistent transform-overlay nodes. Built once and updated in place on every
+  // render (rather than wiping `transformOverlay` and recreating ~10 SVG nodes
+  // per pointer move). The cached `group` is detached from the DOM when there's
+  // no selection and re-attached otherwise, so it stays absent (not just hidden)
+  // when nothing is selected.
+  private overlayNodes: {
+    group: SVGGElement
+    boundingBox: SVGRectElement
+    edges: SVGLineElement[]
+    rotationHandle: SVGCircleElement
+    resizeHandles: SVGRectElement[]
+  } | null = null
+  // Persistent marquee (rubber-band) node, likewise reused across renders.
+  private selectionBoxNode: SVGRectElement | null = null
   private resizeObserver: ResizeObserver | null = null
 
   // Touch gesture state
@@ -658,6 +672,10 @@ export class AdrawCanvas {
 
     this.transformOverlay = document.createElementNS(svgNamespaceURI, "g")
     this.transformOverlay.classList.add(transformOverlayClass)
+    // Overlay children belong to the fresh `transformOverlay`; drop stale refs
+    // so they're rebuilt into it on the next render (e.g. after a re-mount).
+    this.overlayNodes = null
+    this.selectionBoxNode = null
 
     this.svgElement.appendChild(this.elementsGroup)
     this.svgElement.appendChild(this.guidesGroup)
@@ -916,8 +934,8 @@ export class AdrawCanvas {
   }
 
   // Draw the active tool's in-progress marquee (rubber-band) selection as a
-  // dashed box in the overlay layer. Appends after `renderTransformOverlay`,
-  // which clears the layer each render, so this must run after it.
+  // dashed box in the overlay layer. Reuses a single persistent node, hidden
+  // via `display` when there's no marquee, instead of recreating it per render.
   private renderSelectionBox(): void {
     if (!this.transformOverlay) {
       return
@@ -925,25 +943,113 @@ export class AdrawCanvas {
 
     const box = this.activeTool.getSelectionBox?.()
     if (!box || (box.width === 0 && box.height === 0)) {
+      this.selectionBoxNode?.remove()
       return
     }
 
-    const handleSize = resizeHandleSize / this.viewport.zoom
+    if (!this.selectionBoxNode) {
+      const rect = document.createElementNS(svgNamespaceURI, "rect")
+      rect.classList.add(selectionBoxClass)
+      rect.setAttribute("fill", SELECTION_COLOR)
+      rect.setAttribute("fill-opacity", "0.1")
+      rect.setAttribute("stroke", SELECTION_COLOR)
+      rect.setAttribute("stroke-opacity", "0.5")
+      rect.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
+      rect.setAttribute("vector-effect", "non-scaling-stroke")
+      this.selectionBoxNode = rect
+    }
 
-    const rect = document.createElementNS(svgNamespaceURI, "rect")
-    rect.classList.add(selectionBoxClass)
+    // Append after the overlay group (rendered first) so the marquee stays on
+    // top; no-op re-append while it's already attached.
+    if (this.selectionBoxNode.parentNode !== this.transformOverlay) {
+      this.transformOverlay.appendChild(this.selectionBoxNode)
+    }
+
+    const handleSize = resizeHandleSize / this.viewport.zoom
+    const rect = this.selectionBoxNode
     rect.setAttribute("x", `${box.x}`)
     rect.setAttribute("y", `${box.y}`)
     rect.setAttribute("rx", `${handleSize / 4}`)
     rect.setAttribute("width", `${box.width}`)
     rect.setAttribute("height", `${box.height}`)
-    rect.setAttribute("fill", SELECTION_COLOR)
-    rect.setAttribute("fill-opacity", "0.1")
-    rect.setAttribute("stroke", SELECTION_COLOR)
-    rect.setAttribute("stroke-opacity", "0.5")
-    rect.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
-    rect.setAttribute("vector-effect", "non-scaling-stroke")
-    this.transformOverlay.appendChild(rect)
+  }
+
+  // Build the overlay's bounding box, edge bands, rotation handle and resize
+  // handles once. Subsequent renders update these nodes in place (see
+  // `renderTransformOverlay`) rather than recreating them.
+  private ensureOverlayNodes(): NonNullable<AdrawCanvas["overlayNodes"]> {
+    if (this.overlayNodes) {
+      return this.overlayNodes
+    }
+
+    const group = document.createElementNS(svgNamespaceURI, "g")
+
+    // Main bounding box
+    const boundingBox = document.createElementNS(svgNamespaceURI, "rect")
+    boundingBox.setAttribute("fill", "none")
+    boundingBox.setAttribute("stroke", SELECTION_COLOR)
+    boundingBox.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
+    boundingBox.setAttribute("vector-effect", "non-scaling-stroke")
+    group.appendChild(boundingBox)
+
+    // Invisible edge bands — dragging an edge resizes along that axis. They
+    // carry the `*-center` anchors so the select tool's existing resize logic
+    // handles them exactly like the old edge-center handles did.
+    const edgeAnchors = [
+      "top-center",
+      "right-center",
+      "bottom-center",
+      "left-center",
+    ]
+    const edges = edgeAnchors.map((anchor) => {
+      const line = document.createElementNS(svgNamespaceURI, "line")
+      line.classList.add(resizeEdgeClass)
+      line.setAttribute("stroke", "transparent")
+      line.setAttribute("pointer-events", "stroke")
+      line.setAttribute("data-anchor", anchor)
+      group.appendChild(line)
+      return line
+    })
+
+    // Rotation handle
+    const rotationHandle = document.createElementNS(svgNamespaceURI, "circle")
+    rotationHandle.classList.add(rotationHandleClass)
+    rotationHandle.setAttribute("fill", BACKGROUND_COLOR)
+    rotationHandle.setAttribute("stroke", SELECTION_COLOR)
+    rotationHandle.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
+    rotationHandle.setAttribute("vector-effect", "non-scaling-stroke")
+    rotationHandle.setAttribute("data-anchor", "rotation")
+    group.appendChild(rotationHandle)
+
+    // Resize handles (corners)
+    const handleAnchors = [
+      "top-left",
+      "top-right",
+      "bottom-right",
+      "bottom-left",
+    ]
+    const resizeHandles = handleAnchors.map((anchor) => {
+      const square = document.createElementNS(svgNamespaceURI, "rect")
+      square.classList.add(resizeHandleClass)
+      square.setAttribute("fill", BACKGROUND_COLOR)
+      square.setAttribute("stroke", SELECTION_COLOR)
+      square.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
+      square.setAttribute("vector-effect", "non-scaling-stroke")
+      square.setAttribute("data-anchor", anchor)
+      group.appendChild(square)
+      return square
+    })
+
+    // Not appended here — `renderTransformOverlay` attaches the group only when
+    // there's a selection and detaches it otherwise.
+    this.overlayNodes = {
+      boundingBox,
+      edges,
+      group,
+      resizeHandles,
+      rotationHandle,
+    }
+    return this.overlayNodes
   }
 
   private renderTransformOverlay(): void {
@@ -951,132 +1057,95 @@ export class AdrawCanvas {
       return
     }
 
-    this.transformOverlay.innerHTML = ""
+    const nodes = this.ensureOverlayNodes()
     const selectedIds = this.getSelectedIds()
     const elements = this.getElements()
-
-    if (selectedIds.size === 0) {
-      return
-    }
 
     // Hide the bounding box + handles while actively resizing/rotating so the
     // overlay doesn't lag the element mid-gesture; it reappears on pointer up.
     // Opt out via the `hideOverlayWhileTransforming` option.
-    if (
-      this.hideOverlayWhileTransforming &&
-      this.activeTool.isTransforming?.()
-    ) {
+    const suppressed =
+      this.hideOverlayWhileTransforming && this.activeTool.isTransforming?.()
+
+    const bounds =
+      selectedIds.size === 0 || suppressed
+        ? null
+        : getElementsBounds(elements, selectedIds)
+    if (!bounds) {
+      nodes.group.remove()
       return
     }
-
-    const bounds = getElementsBounds(elements, selectedIds)
-    if (!bounds) {
-      return
+    // Attach the cached group when needed; no-op while it's already attached.
+    if (nodes.group.parentNode !== this.transformOverlay) {
+      this.transformOverlay.appendChild(nodes.group)
     }
 
     const { x, y, width, height } = bounds
 
-    const overlay = document.createElementNS(svgNamespaceURI, "g")
+    // Rotate the overlay to match a single selected element's rotation.
+    let transform = ""
     if (selectedIds.size === 1) {
       const [onlyId] = selectedIds
       const element = elements.get(onlyId)
       if (element && element.rotation) {
-        overlay.setAttribute(
-          "transform",
-          `rotate(${element.rotation}, ${x + width / 2}, ${y + height / 2})`,
-        )
+        transform = `rotate(${element.rotation}, ${x + width / 2}, ${y + height / 2})`
       }
     }
-    this.transformOverlay.appendChild(overlay)
+    if (transform) {
+      nodes.group.setAttribute("transform", transform)
+    } else {
+      nodes.group.removeAttribute("transform")
+    }
 
     const handleSize = resizeHandleSize / this.viewport.zoom
 
     // Main bounding box
-    const rect = document.createElementNS(svgNamespaceURI, "rect")
+    const rect = nodes.boundingBox
     rect.setAttribute("x", `${x}`)
     rect.setAttribute("y", `${y}`)
     rect.setAttribute("rx", `${handleSize / 4}`)
     rect.setAttribute("width", `${width}`)
     rect.setAttribute("height", `${height}`)
-    rect.setAttribute("fill", "none")
-    rect.setAttribute("stroke", SELECTION_COLOR)
-    rect.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
-    rect.setAttribute("vector-effect", "non-scaling-stroke")
-    overlay.appendChild(rect)
 
-    // Invisible edge bands — dragging an edge resizes along that axis. They
-    // carry the `*-center` anchors so the select tool's existing resize logic
-    // handles them exactly like the old edge-center handles did.
-    const edges = [
-      { anchor: "top-center", x1: x, x2: x + width, y1: y, y2: y },
-      {
-        anchor: "right-center",
-        x1: x + width,
-        x2: x + width,
-        y1: y,
-        y2: y + height,
-      },
-      {
-        anchor: "bottom-center",
-        x1: x,
-        x2: x + width,
-        y1: y + height,
-        y2: y + height,
-      },
-      { anchor: "left-center", x1: x, x2: x, y1: y, y2: y + height },
+    // Edge bands — same order as `edgeAnchors` in `ensureOverlayNodes`.
+    const edgeGeom = [
+      { x1: x, x2: x + width, y1: y, y2: y },
+      { x1: x + width, x2: x + width, y1: y, y2: y + height },
+      { x1: x, x2: x + width, y1: y + height, y2: y + height },
+      { x1: x, x2: x, y1: y, y2: y + height },
     ]
-    for (const edge of edges) {
-      const line = document.createElementNS(svgNamespaceURI, "line")
-      line.classList.add(resizeEdgeClass)
-      line.setAttribute("x1", `${edge.x1}`)
-      line.setAttribute("y1", `${edge.y1}`)
-      line.setAttribute("x2", `${edge.x2}`)
-      line.setAttribute("y2", `${edge.y2}`)
-      line.setAttribute("stroke", "transparent")
+    for (let i = 0; i < edgeGeom.length; i++) {
+      const line = nodes.edges[i]
+      const g = edgeGeom[i]
+      line.setAttribute("x1", `${g.x1}`)
+      line.setAttribute("y1", `${g.y1}`)
+      line.setAttribute("x2", `${g.x2}`)
+      line.setAttribute("y2", `${g.y2}`)
       line.setAttribute("stroke-width", `${handleSize}`)
-      line.setAttribute("pointer-events", "stroke")
-      line.setAttribute("data-anchor", edge.anchor)
-      overlay.appendChild(line)
     }
-
-    // Handle positions
-    const handles = [
-      { anchor: "top-left", x, y },
-      { anchor: "top-right", x: x + width, y },
-      { anchor: "bottom-right", x: x + width, y: y + height },
-      { anchor: "bottom-left", x, y: y + height },
-    ]
 
     // Rotation handle
     const rotationHandleY = y - rotationHandleSpacing / this.viewport.zoom
     const rotationHandleR = rotationHandleRadio / this.viewport.zoom
-    const rotationHandle = document.createElementNS(svgNamespaceURI, "circle")
-    rotationHandle.classList.add(rotationHandleClass)
-    rotationHandle.setAttribute("cx", `${x + width / 2}`)
-    rotationHandle.setAttribute("cy", `${rotationHandleY}`)
-    rotationHandle.setAttribute("r", `${rotationHandleR}`)
-    rotationHandle.setAttribute("fill", BACKGROUND_COLOR)
-    rotationHandle.setAttribute("stroke", SELECTION_COLOR)
-    rotationHandle.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
-    rotationHandle.setAttribute("vector-effect", "non-scaling-stroke")
-    rotationHandle.setAttribute("data-anchor", "rotation")
-    overlay.appendChild(rotationHandle)
+    nodes.rotationHandle.setAttribute("cx", `${x + width / 2}`)
+    nodes.rotationHandle.setAttribute("cy", `${rotationHandleY}`)
+    nodes.rotationHandle.setAttribute("r", `${rotationHandleR}`)
 
-    // Resize handles
-    for (const handle of handles) {
-      const square = document.createElementNS(svgNamespaceURI, "rect")
-      square.classList.add(resizeHandleClass)
-      square.setAttribute("x", `${handle.x - handleSize / 2}`)
-      square.setAttribute("y", `${handle.y - handleSize / 2}`)
+    // Resize handles — same order as `handleAnchors` in `ensureOverlayNodes`.
+    const handleGeom = [
+      { x, y },
+      { x: x + width, y },
+      { x: x + width, y: y + height },
+      { x, y: y + height },
+    ]
+    for (let i = 0; i < handleGeom.length; i++) {
+      const square = nodes.resizeHandles[i]
+      const h = handleGeom[i]
+      square.setAttribute("x", `${h.x - handleSize / 2}`)
+      square.setAttribute("y", `${h.y - handleSize / 2}`)
       square.setAttribute("rx", `${handleSize / 4}`)
       square.setAttribute("width", `${handleSize}`)
       square.setAttribute("height", `${handleSize}`)
-      square.setAttribute("fill", BACKGROUND_COLOR)
-      square.setAttribute("stroke", SELECTION_COLOR)
-      square.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
-      square.setAttribute("vector-effect", "non-scaling-stroke")
-      square.setAttribute("data-anchor", handle.anchor)
-      overlay.appendChild(square)
     }
   }
 
