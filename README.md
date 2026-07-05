@@ -15,7 +15,7 @@ A lightweight, framework-agnostic infinity canvas library built on SVG. Supports
 - Snap-to-grid and element snapping guides
 - Media (image) elements
 - Headless-friendly — mount to DOM or use as pure state engine
-- Framework bindings for React, Vue, Svelte, and SolidJS
+- Framework bindings for React, Vue, Svelte, SolidJS, Angular, and Web Components
 
 ## Tools
 
@@ -31,13 +31,15 @@ A lightweight, framework-agnostic infinity canvas library built on SVG. Supports
 
 ## Packages
 
-| Package         | Description                               |
-| --------------- | ----------------------------------------- |
-| `@adraw/core`   | Core canvas logic, headless and DOM-ready |
-| `@adraw/react`  | React components and hooks                |
-| `@adraw/vue`    | Vue components                            |
-| `@adraw/svelte` | Svelte components                         |
-| `@adraw/solid`  | SolidJS components                        |
+| Package                 | Description                               |
+| ----------------------- | ----------------------------------------- |
+| `@adraw/core`           | Core canvas logic, headless and DOM-ready |
+| `@adraw/react`          | React components and hooks                |
+| `@adraw/vue`            | Vue components and hooks                  |
+| `@adraw/svelte`         | Svelte components and hooks               |
+| `@adraw/solid`          | SolidJS components and hooks              |
+| `@adraw/angular`        | Angular component, service and hooks      |
+| `@adraw/web-components` | Native Web Components                     |
 
 ## Quick Start
 
