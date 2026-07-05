@@ -146,12 +146,12 @@ Disconnects the resize observer and removes the SVG element.
 
 ## CSS variables
 
-| Variable                  | Default       | Description          |
-| ------------------------- | ------------- | -------------------- |
-| `--adraw-background`      | `#ffffff`     | Canvas background    |
-| `--adraw-stroke-color`    | `#000000`     | Default stroke color |
-| `--adraw-fill-color`      | `transparent` | Default fill color   |
-| `--adraw-selection-color` | `#4f46e5`     | Selection handles    |
+| Variable             | Default       | Description          |
+| -------------------- | ------------- | -------------------- |
+| `--adraw-background` | `#ffffff`     | Canvas background    |
+| `--adraw-stroke`     | `#000000`     | Default stroke color |
+| `--adraw-fill`       | `transparent` | Default fill color   |
+| `--adraw-selection`  | `#4f46e5`     | Selection handles    |
 
 ## License
 

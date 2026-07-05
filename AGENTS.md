@@ -139,7 +139,7 @@ Defined in `src/types.ts`. All elements extend `BaseElement` (id, x, y, width, h
 
 ### Rendering
 
-`AdrawCanvas` renders elements to SVG using `createElementGroup` (`src/canvas.ts`). Styling uses CSS custom properties: `--adraw-stroke-color`, `--adraw-fill-color`, `--adraw-background`, `--adraw-selection-color`. The transform overlay (selection handles, rotation handle) is rendered in a separate `<g>` layer on top.
+`AdrawCanvas` renders elements to SVG using `createElementGroup` (`src/canvas.ts`). Styling uses CSS custom properties: `--adraw-stroke`, `--adraw-fill`, `--adraw-background`, `--adraw-selection`. The transform overlay (selection handles, rotation handle) is rendered in a separate `<g>` layer on top.
 
 Committed elements live in a single `.adraw-elements-group` `<g>`; the SVG has just two child layers, that elements group plus the transform overlay (there is **no** separate temporary group). Rendering is **incremental — never `innerHTML = ""` on the elements group**:
 

@@ -1,3 +1,10 @@
+import {
+  BACKGROUND_COLOR,
+  FILL_COLOR,
+  SELECTION_COLOR,
+  STROKE_COLOR,
+  STROKE_WIDTH,
+} from "./constants"
 import { screenToCanvas } from "./coordinates"
 import { DEFAULT_PATH_SMOOTHING, getElementsBounds } from "./elements"
 import {
@@ -67,6 +74,9 @@ const resizeHandleClass = "adraw-resize-handle"
 const selectionBoxClass = "adraw-selection-box"
 
 const boundingBoxStrokeWidth = 2
+const resizeHandleSize = 12
+const rotationHandleRadio = 6
+const rotationHandleSpacing = 30
 
 // Cursor for each resize/rotation handle, keyed by its `data-anchor` value.
 const handleCursorMap: Record<string, string> = {
@@ -146,25 +156,25 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
   switch (element.type) {
     case "rectangle": {
       const rect = document.createElementNS(svgNamespaceURI, "rect")
-      rect.setAttribute("width", String(element.width))
-      rect.setAttribute("height", String(element.height))
-      rect.setAttribute("rx", String(element.cornerRadius))
-      rect.setAttribute("fill", "var(--adraw-fill-color, transparent)")
-      rect.setAttribute("stroke", "var(--adraw-stroke-color, #000)")
-      rect.setAttribute("stroke-width", "2")
+      rect.setAttribute("width", `${element.width}`)
+      rect.setAttribute("height", `${element.height}`)
+      rect.setAttribute("rx", `${element.cornerRadius}`)
+      rect.setAttribute("fill", FILL_COLOR)
+      rect.setAttribute("stroke", STROKE_COLOR)
+      rect.setAttribute("stroke-width", `${STROKE_WIDTH}`)
       group.appendChild(rect)
       break
     }
 
     case "ellipse": {
       const ellipse = document.createElementNS(svgNamespaceURI, "ellipse")
-      ellipse.setAttribute("cx", String(element.width / 2))
-      ellipse.setAttribute("cy", String(element.height / 2))
-      ellipse.setAttribute("rx", String(element.width / 2))
-      ellipse.setAttribute("ry", String(element.height / 2))
-      ellipse.setAttribute("fill", "var(--adraw-fill-color, transparent)")
-      ellipse.setAttribute("stroke", "var(--adraw-stroke-color, #000)")
-      ellipse.setAttribute("stroke-width", "2")
+      ellipse.setAttribute("cx", `${element.width / 2}`)
+      ellipse.setAttribute("cy", `${element.height / 2}`)
+      ellipse.setAttribute("rx", `${element.width / 2}`)
+      ellipse.setAttribute("ry", `${element.height / 2}`)
+      ellipse.setAttribute("fill", FILL_COLOR)
+      ellipse.setAttribute("stroke", STROKE_COLOR)
+      ellipse.setAttribute("stroke-width", `${STROKE_WIDTH}`)
       group.appendChild(ellipse)
       break
     }
@@ -173,12 +183,12 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
       const pathData = pointsToPath(element.points, element.smoothing)
       const path = document.createElementNS(svgNamespaceURI, "path")
       path.setAttribute("d", pathData)
-      path.setAttribute("fill", element.fillColor || "none")
+      path.setAttribute("fill", "none")
+      path.setAttribute("stroke", element.strokeColor || STROKE_COLOR)
       path.setAttribute(
-        "stroke",
-        element.strokeColor || "var(--adraw-stroke-color, #000)",
+        "stroke-width",
+        `${element.strokeWidth || STROKE_WIDTH}`,
       )
-      path.setAttribute("stroke-width", String(element.strokeWidth || 2))
       group.appendChild(path)
       break
     }
@@ -186,8 +196,8 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
     case "media": {
       const image = document.createElementNS(svgNamespaceURI, "image")
       image.setAttribute("href", element.src)
-      image.setAttribute("width", String(element.width))
-      image.setAttribute("height", String(element.height))
+      image.setAttribute("width", `${element.width}`)
+      image.setAttribute("height", `${element.height}`)
       image.setAttribute("preserveAspectRatio", "none")
       group.appendChild(image)
       break
@@ -618,7 +628,7 @@ export class AdrawCanvas {
     this.svgElement.setAttribute("width", "100%")
     this.svgElement.setAttribute("height", "100%")
     this.svgElement.style.display = "block"
-    this.svgElement.style.background = "var(--adraw-background, #ffffff)"
+    this.svgElement.style.background = BACKGROUND_COLOR
     this.svgElement.style.touchAction = "none"
 
     this.elementsGroup = document.createElementNS(svgNamespaceURI, "g")
@@ -899,15 +909,18 @@ export class AdrawCanvas {
       return
     }
 
+    const handleSize = resizeHandleSize / this.viewport.zoom
+
     const rect = document.createElementNS(svgNamespaceURI, "rect")
     rect.classList.add(selectionBoxClass)
-    rect.setAttribute("x", String(box.x))
-    rect.setAttribute("y", String(box.y))
-    rect.setAttribute("width", String(box.width))
-    rect.setAttribute("height", String(box.height))
-    rect.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
+    rect.setAttribute("x", `${box.x}`)
+    rect.setAttribute("y", `${box.y}`)
+    rect.setAttribute("rx", `${handleSize / 4}`)
+    rect.setAttribute("width", `${box.width}`)
+    rect.setAttribute("height", `${box.height}`)
+    rect.setAttribute("fill", SELECTION_COLOR)
     rect.setAttribute("fill-opacity", "0.1")
-    rect.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
+    rect.setAttribute("stroke", SELECTION_COLOR)
     rect.setAttribute("stroke-opacity", "0.5")
     rect.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
     rect.setAttribute("vector-effect", "non-scaling-stroke")
@@ -953,14 +966,17 @@ export class AdrawCanvas {
     }
     this.transformOverlay.appendChild(overlay)
 
+    const handleSize = resizeHandleSize / this.viewport.zoom
+
     // Main bounding box
     const rect = document.createElementNS(svgNamespaceURI, "rect")
-    rect.setAttribute("x", String(x))
-    rect.setAttribute("y", String(y))
-    rect.setAttribute("width", String(width))
-    rect.setAttribute("height", String(height))
+    rect.setAttribute("x", `${x}`)
+    rect.setAttribute("y", `${y}`)
+    rect.setAttribute("rx", `${handleSize / 4}`)
+    rect.setAttribute("width", `${width}`)
+    rect.setAttribute("height", `${height}`)
     rect.setAttribute("fill", "none")
-    rect.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
+    rect.setAttribute("stroke", SELECTION_COLOR)
     rect.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
     rect.setAttribute("vector-effect", "non-scaling-stroke")
     overlay.appendChild(rect)
@@ -978,41 +994,31 @@ export class AdrawCanvas {
     ]
 
     // Rotation handle
-    const rotationHandleY = y - 30
+    const rotationHandleY = y - rotationHandleSpacing / this.viewport.zoom
+    const rotationHandleR = rotationHandleRadio / this.viewport.zoom
     const rotationHandle = document.createElementNS(svgNamespaceURI, "circle")
     rotationHandle.classList.add(rotationHandleClass)
-    rotationHandle.setAttribute("cx", String(x + width / 2))
-    rotationHandle.setAttribute("cy", String(rotationHandleY))
-    rotationHandle.setAttribute("r", "6")
-    rotationHandle.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
-    rotationHandle.setAttribute("stroke", "#ffffff")
+    rotationHandle.setAttribute("cx", `${x + width / 2}`)
+    rotationHandle.setAttribute("cy", `${rotationHandleY}`)
+    rotationHandle.setAttribute("r", `${rotationHandleR}`)
+    rotationHandle.setAttribute("fill", BACKGROUND_COLOR)
+    rotationHandle.setAttribute("stroke", SELECTION_COLOR)
     rotationHandle.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
     rotationHandle.setAttribute("vector-effect", "non-scaling-stroke")
     rotationHandle.setAttribute("data-anchor", "rotation")
     overlay.appendChild(rotationHandle)
 
-    // Connecting line for rotation handle
-    const rotationLine = document.createElementNS(svgNamespaceURI, "line")
-    rotationLine.setAttribute("x1", String(x + width / 2))
-    rotationLine.setAttribute("y1", String(y))
-    rotationLine.setAttribute("x2", String(x + width / 2))
-    rotationLine.setAttribute("y2", String(rotationHandleY + 6))
-    rotationLine.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
-    rotationLine.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
-    rotationLine.setAttribute("vector-effect", "non-scaling-stroke")
-    overlay.appendChild(rotationLine)
-
     // Resize handles
     for (const handle of handles) {
       const square = document.createElementNS(svgNamespaceURI, "rect")
-      const size = 8
       square.classList.add(resizeHandleClass)
-      square.setAttribute("x", String(handle.x - size / 2))
-      square.setAttribute("y", String(handle.y - size / 2))
-      square.setAttribute("width", String(size))
-      square.setAttribute("height", String(size))
-      square.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
-      square.setAttribute("stroke", "#ffffff")
+      square.setAttribute("x", `${handle.x - handleSize / 2}`)
+      square.setAttribute("y", `${handle.y - handleSize / 2}`)
+      square.setAttribute("rx", `${handleSize / 4}`)
+      square.setAttribute("width", `${handleSize}`)
+      square.setAttribute("height", `${handleSize}`)
+      square.setAttribute("fill", BACKGROUND_COLOR)
+      square.setAttribute("stroke", SELECTION_COLOR)
       square.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
       square.setAttribute("vector-effect", "non-scaling-stroke")
       square.setAttribute("data-anchor", handle.anchor)
@@ -1117,22 +1123,22 @@ export class AdrawCanvas {
       }
       case "rectangle": {
         const rectElement = group.getElementsByTagName("rect")[0]
-        rectElement.setAttribute("width", String(element.width))
-        rectElement.setAttribute("height", String(element.height))
+        rectElement.setAttribute("width", `${element.width}`)
+        rectElement.setAttribute("height", `${element.height}`)
         break
       }
       case "ellipse": {
         const ellipseElement = group.getElementsByTagName("ellipse")[0]
-        ellipseElement.setAttribute("cx", String(element.width / 2))
-        ellipseElement.setAttribute("cy", String(element.height / 2))
-        ellipseElement.setAttribute("rx", String(element.width / 2))
-        ellipseElement.setAttribute("ry", String(element.height / 2))
+        ellipseElement.setAttribute("cx", `${element.width / 2}`)
+        ellipseElement.setAttribute("cy", `${element.height / 2}`)
+        ellipseElement.setAttribute("rx", `${element.width / 2}`)
+        ellipseElement.setAttribute("ry", `${element.height / 2}`)
         break
       }
       case "media": {
         const imageElement = group.getElementsByTagName("image")[0]
-        imageElement.setAttribute("width", String(element.width))
-        imageElement.setAttribute("height", String(element.height))
+        imageElement.setAttribute("width", `${element.width}`)
+        imageElement.setAttribute("height", `${element.height}`)
         break
       }
     }

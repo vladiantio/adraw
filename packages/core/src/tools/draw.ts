@@ -1,3 +1,4 @@
+import { STROKE_COLOR, STROKE_WIDTH } from "../constants"
 import {
   createPath,
   DEFAULT_PATH_SMOOTHING,
@@ -103,9 +104,8 @@ function createPathElement(
   points: Point[],
   {
     smoothing = DEFAULT_PATH_SMOOTHING,
-    strokeWidth = 2,
-    strokeColor = "var(--adraw-stroke-color, #000)",
-    fillColor = "transparent",
+    strokeColor = STROKE_COLOR,
+    strokeWidth = STROKE_WIDTH,
   }: DrawToolOptions,
   factory?: Partial<ElementFactory<PathElement>>,
 ) {
@@ -117,7 +117,6 @@ function createPathElement(
   }
 
   return createPath({
-    fillColor,
     height: Math.max(bounds.height, 1),
     locked: false,
     points: simplifiedPoints,

@@ -1,3 +1,4 @@
+import { FILL_COLOR, STROKE_COLOR, STROKE_WIDTH } from "../constants"
 import type {
   BoundingBox,
   CanvasElement,
@@ -69,9 +70,9 @@ export interface ToolOptions {
 
 export function getDefaultToolOptions(): ToolOptions {
   return {
-    fillColor: "transparent",
-    strokeColor: "var(--adraw-stroke-color, #000)",
-    strokeWidth: 2,
+    fillColor: FILL_COLOR,
+    strokeColor: STROKE_COLOR,
+    strokeWidth: STROKE_WIDTH,
   }
 }
 
