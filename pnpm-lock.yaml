@@ -210,6 +210,22 @@ importers:
         specifier: ^3.1.5
         version: 3.2.5(typescript@5.9.3)
 
+  examples/vite-web-components:
+    dependencies:
+      '@adraw/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@adraw/web-components':
+        specifier: workspace:*
+        version: link:../../packages/web-components
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.6(@types/node@24.10.13)(jiti@2.6.1)(less@4.6.7)(lightningcss@1.32.0)(sass@1.101.0)(terser@5.46.0)
+
   packages/angular:
     dependencies:
       '@adraw/core':
@@ -307,6 +323,12 @@ importers:
       vue:
         specifier: ^3.5.29
         version: 3.5.29(typescript@5.9.3)
+
+  packages/web-components:
+    dependencies:
+      '@adraw/core':
+        specifier: workspace:*
+        version: link:../core
 
   web:
     dependencies:
@@ -9738,6 +9760,23 @@ snapshots:
       less: 4.6.7
       lightningcss: 1.32.0
       sass: 1.97.3
+      terser: 5.46.0
+
+  vite@7.3.6(@types/node@24.10.13)(jiti@2.6.1)(less@4.6.7)(lightningcss@1.32.0)(sass@1.101.0)(terser@5.46.0):
+    dependencies:
+      esbuild: 0.28.1
+      fdir: 6.5.0(picomatch@4.0.4)
+      picomatch: 4.0.4
+      postcss: 8.5.15
+      rollup: 4.55.2
+      tinyglobby: 0.2.17
+    optionalDependencies:
+      '@types/node': 24.10.13
+      fsevents: 2.3.3
+      jiti: 2.6.1
+      less: 4.6.7
+      lightningcss: 1.32.0
+      sass: 1.101.0
       terser: 5.46.0
 
   vite@7.3.6(@types/node@24.10.13)(jiti@2.6.1)(less@4.6.7)(lightningcss@1.32.0)(sass@1.97.3)(terser@5.46.0):
