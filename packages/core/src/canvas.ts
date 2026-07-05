@@ -216,6 +216,9 @@ export class AdrawCanvas {
   // The in-progress element (from the active tool) is rendered directly into
   // `elementsGroup`; this tracks its node so it can be updated/removed in place.
   private temporaryNode: SVGGElement | null = null
+  // Element type the current `temporaryNode` was built for, so `renderTemporary`
+  // can update it in place while the type is unchanged instead of recreating it.
+  private temporaryType: CanvasElement["type"] | null = null
   private guidesGroup: SVGGElement | null = null
   private transformOverlay: SVGGElement | null = null
   private resizeObserver: ResizeObserver | null = null
@@ -1027,18 +1030,31 @@ export class AdrawCanvas {
       return
     }
 
-    // The temporary element lives inside `elementsGroup` (on top, as the last
-    // child). Rebuild only that single node, leaving committed elements intact.
-    this.temporaryNode?.remove()
-    this.temporaryNode = null
-
     const tempElement = this.getTemporaryElement()
-    if (tempElement) {
+
+    // No in-progress element: drop the temporary node if one is lingering.
+    if (!tempElement) {
+      this.temporaryNode?.remove()
+      this.temporaryNode = null
+      this.temporaryType = null
+      return
+    }
+
+    // The temporary element lives inside `elementsGroup` (on top, as the last
+    // child). Reuse its node across pointer moves — while the type is unchanged,
+    // update it in place rather than recreating it. Only build a fresh node when
+    // there is none yet or the element type changed.
+    if (!this.temporaryNode || this.temporaryType !== tempElement.type) {
+      this.temporaryNode?.remove()
       const group = createElementGroup(tempElement)
       group.classList.add(temporaryClass)
       this.temporaryNode = group
+      this.temporaryType = tempElement.type
       this.elementsGroup.appendChild(group)
+      return
     }
+
+    this.updateElementGeometry(this.temporaryNode, tempElement)
   }
 
   // Update an existing element's DOM node (transform + type-specific geometry)
