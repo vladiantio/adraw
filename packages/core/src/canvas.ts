@@ -924,6 +924,12 @@ export class AdrawCanvas {
       return
     }
 
+    // Hide the bounding box + handles while actively resizing/rotating so the
+    // overlay doesn't lag the element mid-gesture; it reappears on pointer up.
+    if (this.activeTool.isTransforming?.()) {
+      return
+    }
+
     const bounds = getElementsBounds(elements, selectedIds)
     if (!bounds) {
       return

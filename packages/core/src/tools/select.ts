@@ -88,6 +88,9 @@ export function createSelectTool(
     getTemporaryElement() {
       return null
     },
+    isTransforming() {
+      return dragHandle !== null
+    },
     onActivate() {
       state.isActive = true
     },
