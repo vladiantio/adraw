@@ -1,4 +1,5 @@
 import type {
+  BoundingBox,
   CanvasElement,
   ElementId,
   Point,
@@ -41,6 +42,10 @@ export interface Tool {
   ) => void
   onPointerUp: (context: ToolContext, point: Point, event: PointerEvent) => void
   getTemporaryElement: () => CanvasElement | null
+  // In-progress marquee (rubber-band) selection box in canvas space, or null
+  // when the tool isn't brushing. Rendered as a dashed overlay, not committed as
+  // an element. Only the select tool implements this.
+  getSelectionBox?: () => BoundingBox | null
 }
 
 export function createBaseToolState(): ToolState {

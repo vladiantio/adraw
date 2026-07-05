@@ -64,6 +64,7 @@ const selectedClass = "adraw-selected"
 const transformOverlayClass = "adraw-transform-overlay"
 const rotationHandleClass = "adraw-rotation-handle"
 const resizeHandleClass = "adraw-resize-handle"
+const selectionBoxClass = "adraw-selection-box"
 
 // Cursor for each resize/rotation handle, keyed by its `data-anchor` value.
 const handleCursorMap: Record<string, string> = {
@@ -880,6 +881,34 @@ export class AdrawCanvas {
 
     this.renderTemporary()
     this.renderTransformOverlay()
+    this.renderSelectionBox()
+  }
+
+  // Draw the active tool's in-progress marquee (rubber-band) selection as a
+  // dashed box in the overlay layer. Appends after `renderTransformOverlay`,
+  // which clears the layer each render, so this must run after it.
+  private renderSelectionBox(): void {
+    if (!this.transformOverlay) {
+      return
+    }
+
+    const box = this.activeTool.getSelectionBox?.()
+    if (!box || (box.width === 0 && box.height === 0)) {
+      return
+    }
+
+    const rect = document.createElementNS(svgNamespaceURI, "rect")
+    rect.classList.add(selectionBoxClass)
+    rect.setAttribute("x", String(box.x))
+    rect.setAttribute("y", String(box.y))
+    rect.setAttribute("width", String(box.width))
+    rect.setAttribute("height", String(box.height))
+    rect.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
+    rect.setAttribute("fill-opacity", "0.1")
+    rect.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
+    rect.setAttribute("stroke-width", "1")
+    rect.setAttribute("stroke-dasharray", "4,4")
+    this.transformOverlay.appendChild(rect)
   }
 
   private renderTransformOverlay(): void {

@@ -3,8 +3,15 @@ import {
   getElementsBounds,
   rotateElement,
 } from "../elements"
-import type { CanvasElement, ElementId, Point, ToolType } from "../types"
+import type {
+  BoundingBox,
+  CanvasElement,
+  ElementId,
+  Point,
+  ToolType,
+} from "../types"
 import {
+  calculateBounds,
   createBaseToolState,
   type Tool,
   type ToolContext,
@@ -27,6 +34,18 @@ function getPointsBounds(points: Point[]) {
     maxY = Math.max(maxY, p.y)
   }
   return { height: maxY - minY, width: maxX - minX, x: minX, y: minY }
+}
+
+// Axis-aligned bounding-box overlap test. The marquee selects any element whose
+// bounding box it touches (intersection semantics), so rotation is approximated
+// by the element's unrotated box — good enough for a rubber-band selection.
+function boxesIntersect(a: BoundingBox, b: BoundingBox): boolean {
+  return (
+    a.x <= b.x + b.width &&
+    a.x + a.width >= b.x &&
+    a.y <= b.y + b.height &&
+    a.y + a.height >= b.y
+  )
 }
 
 export function createSelectTool(
@@ -54,9 +73,18 @@ export function createSelectTool(
     width: number
     height: number
   } | null = null
+  // Marquee (rubber-band) selection: the anchor point where the brush started,
+  // the current box while dragging, and the selection captured at brush start so
+  // a multi-select modifier can union the brushed elements onto it.
+  let brushStart: Point | null = null
+  let brushBox: BoundingBox | null = null
+  let brushBaseSelection: Set<ElementId> | null = null
 
   return {
     cursor: "default",
+    getSelectionBox() {
+      return brushBox
+    },
     getTemporaryElement() {
       return null
     },
@@ -72,6 +100,9 @@ export function createSelectTool(
       dragHandle = null
       rotationCenter = null
       originalBounds = null
+      brushStart = null
+      brushBox = null
+      brushBaseSelection = null
       originalPositions.clear()
     },
     onPointerDown(context: ToolContext, point: Point, event: PointerEvent) {
@@ -111,7 +142,15 @@ export function createSelectTool(
           dragStartElement = element
           dragStartPoint = point
         } else {
-          context.setSelectedIds(new Set())
+          // Empty space: begin a marquee (rubber-band) selection. With the
+          // multi-select modifier held, brushed elements are unioned onto the
+          // existing selection; otherwise start from an empty selection.
+          brushStart = point
+          brushBox = { height: 0, width: 0, x: point.x, y: point.y }
+          brushBaseSelection = isMultiSelect ? new Set(selectedIds) : new Set()
+          if (!isMultiSelect) {
+            context.setSelectedIds(new Set())
+          }
         }
       }
 
@@ -163,6 +202,21 @@ export function createSelectTool(
       state.currentPoint = point
       const elements = context.getElements()
       const selectedIds = context.getSelectedIds()
+
+      if (brushStart) {
+        // Grow the marquee and reselect every element it now touches, unioned
+        // with the selection captured at brush start (empty unless the
+        // multi-select modifier was held).
+        brushBox = calculateBounds(brushStart, point)
+        const next = new Set(brushBaseSelection)
+        for (const el of elements.values()) {
+          if (el.visible && !el.locked && boxesIntersect(brushBox, el)) {
+            next.add(el.id)
+          }
+        }
+        context.setSelectedIds(next)
+        return
+      }
 
       if (dragHandle === "rotation" && rotationCenter) {
         // Rotate selected elements
@@ -424,7 +478,9 @@ export function createSelectTool(
       }
     },
     onPointerUp(context: ToolContext, _point: Point, _event: PointerEvent) {
-      if (originalPositions.size > 0) {
+      // A marquee only changes selection, never geometry, so it must not push a
+      // history entry even when it started from a non-empty selection.
+      if (!brushStart && originalPositions.size > 0) {
         context.pushHistory()
       }
 
@@ -435,6 +491,9 @@ export function createSelectTool(
       dragHandle = null
       rotationCenter = null
       originalBounds = null
+      brushStart = null
+      brushBox = null
+      brushBaseSelection = null
       originalPositions.clear()
     },
     type: "select" as ToolType,
