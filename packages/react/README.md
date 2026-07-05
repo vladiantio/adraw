@@ -119,6 +119,16 @@ const { selectedIds, elements, selectAll, clearSelection, deleteSelected } =
   useSelection()
 ```
 
+### `useTransformOverlay()`
+
+```ts
+const { hideWhileTransforming, setHideWhileTransforming } = useTransformOverlay()
+// hideWhileTransforming: boolean — whether the selection bounding box +
+// resize/rotation handles are hidden while a resize/rotation gesture is in
+// progress (defaults to true; set via the hideOverlayWhileTransforming option)
+setHideWhileTransforming(false)
+```
+
 ## Server components (Next.js)
 
 All exports are marked `"use client"`. Import them only from client components or use a dynamic import with `ssr: false`.

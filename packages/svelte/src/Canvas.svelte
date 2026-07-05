@@ -16,6 +16,7 @@ let container: HTMLDivElement
 $effect(() => {
   const canvas = new AdrawCanvas({
     container,
+    hideOverlayWhileTransforming: context.options?.hideOverlayWhileTransforming,
     initialViewport: context.options?.initialViewport,
     snapping: context.options?.snapping,
   })

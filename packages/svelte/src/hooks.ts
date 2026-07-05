@@ -45,6 +45,20 @@ export function useHistory() {
   }
 }
 
+export function useTransformOverlay() {
+  const context = useCanvas()
+
+  return {
+    get hideWhileTransforming() {
+      return context.state.hideWhileTransforming
+    },
+    setHideWhileTransforming: (hide: boolean) => {
+      context.instance.current?.setHideOverlayWhileTransforming(hide)
+      context.state.hideWhileTransforming = hide
+    },
+  }
+}
+
 export function useSelection() {
   const context = useCanvas()
 

@@ -5,5 +5,6 @@ export {
   useHistory,
   useSelection,
   useTool,
+  useTransformOverlay,
   useViewport,
 } from "./components"

@@ -28,6 +28,7 @@ export class CanvasService {
   private readonly _viewport = signal<ViewportState>({ x: 0, y: 0, zoom: 1 })
   private readonly _activeTool = signal<ToolType>("select")
   private readonly _selectedIds = signal<Set<ElementId>>(new Set())
+  private readonly _hideWhileTransforming = signal(true)
 
   // Read-only views of the mirrored core state. Consumers read them by calling
   // the signal (including in templates); state only ever changes via the core.
@@ -35,6 +36,7 @@ export class CanvasService {
   readonly viewport = this._viewport.asReadonly()
   readonly activeTool = this._activeTool.asReadonly()
   readonly selectedIds = this._selectedIds.asReadonly()
+  readonly hideWhileTransforming = this._hideWhileTransforming.asReadonly()
 
   // Bumped on every "change" event (draw, erase, undo, redo, delete) so the
   // canUndo/canRedo computeds recompute even though the core's history stack
@@ -59,6 +61,7 @@ export class CanvasService {
     this._viewport.set(this.core.getViewport())
     this._activeTool.set(this.core.getActiveTool())
     this._selectedIds.set(new Set(this.core.getSelectedIds()))
+    this._hideWhileTransforming.set(this.core.getHideOverlayWhileTransforming())
 
     this.core.on("change", ({ elements }) => {
       this._elements.set(new Map(elements))
@@ -92,6 +95,11 @@ export class CanvasService {
 
   setTool(tool: ToolType): void {
     this.core.setActiveTool(tool)
+  }
+
+  setHideWhileTransforming(hide: boolean): void {
+    this.core.setHideOverlayWhileTransforming(hide)
+    this._hideWhileTransforming.set(hide)
   }
 
   setViewport(viewport: ViewportState): void {

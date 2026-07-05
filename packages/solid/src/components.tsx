@@ -39,6 +39,8 @@ interface CanvasContextValue {
   setCanUndo: Setter<boolean>
   canRedo: Accessor<boolean>
   setCanRedo: Setter<boolean>
+  hideWhileTransforming: Accessor<boolean>
+  setHideWhileTransforming: Setter<boolean>
   options?: CanvasSolidOptions
 }
 
@@ -63,6 +65,9 @@ export function CanvasProvider(props: CanvasProviderProps): JSX.Element {
   const [selectedIds, setSelectedIds] = createSignal<Set<ElementId>>(new Set())
   const [canUndo, setCanUndo] = createSignal(false)
   const [canRedo, setCanRedo] = createSignal(false)
+  const [hideWhileTransforming, setHideWhileTransforming] = createSignal(
+    props.options?.hideOverlayWhileTransforming ?? true,
+  )
 
   const value: CanvasContextValue = {
     activeTool,
@@ -70,6 +75,7 @@ export function CanvasProvider(props: CanvasProviderProps): JSX.Element {
     canUndo,
     canvasRef,
     elements,
+    hideWhileTransforming,
     get options() {
       return props.options
     },
@@ -78,6 +84,7 @@ export function CanvasProvider(props: CanvasProviderProps): JSX.Element {
     setCanRedo,
     setCanUndo,
     setElements,
+    setHideWhileTransforming,
     setSelectedIds,
     setViewport,
     viewport,
@@ -140,6 +147,21 @@ export function useHistory() {
   }
 }
 
+export function useTransformOverlay() {
+  const { canvasRef, hideWhileTransforming, setHideWhileTransforming } =
+    useCanvas()
+
+  return {
+    get hideWhileTransforming() {
+      return hideWhileTransforming()
+    },
+    setHideWhileTransforming: (hide: boolean) => {
+      canvasRef.current?.setHideOverlayWhileTransforming(hide)
+      setHideWhileTransforming(hide)
+    },
+  }
+}
+
 export function useSelection() {
   const { canvasRef, selectedIds, elements } = useCanvas()
 
@@ -181,6 +203,7 @@ export function Canvas(props: CanvasProps): JSX.Element {
 
     const canvas = new AdrawCanvas({
       container: containerRef,
+      hideOverlayWhileTransforming: options?.hideOverlayWhileTransforming,
       initialViewport: options?.initialViewport,
       snapping: options?.snapping,
     })

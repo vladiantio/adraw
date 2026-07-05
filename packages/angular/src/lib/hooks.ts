@@ -46,6 +46,15 @@ export function useHistory() {
   }
 }
 
+export function useTransformOverlay() {
+  const canvas = inject(CanvasService)
+  return {
+    hideWhileTransforming: canvas.hideWhileTransforming,
+    setHideWhileTransforming: (hide: boolean) =>
+      canvas.setHideWhileTransforming(hide),
+  }
+}
+
 export function useSelection() {
   const canvas = inject(CanvasService)
   return {

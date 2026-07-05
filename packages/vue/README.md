@@ -147,6 +147,16 @@ const { selectedIds, elements, selectAll, clearSelection, deleteSelected } =
   useSelection()
 ```
 
+### `useTransformOverlay()`
+
+```ts
+const { hideWhileTransforming, setHideWhileTransforming } = useTransformOverlay()
+// hideWhileTransforming: getter — whether the selection bounding box +
+// resize/rotation handles are hidden while a resize/rotation gesture is in
+// progress (defaults to true; set via the hideOverlayWhileTransforming option)
+setHideWhileTransforming(false)
+```
+
 ## License
 
 MIT

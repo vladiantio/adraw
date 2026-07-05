@@ -7,6 +7,7 @@ export {
   useHistory,
   useSelection,
   useTool,
+  useTransformOverlay,
   useViewport,
 } from "./hooks.ts"
 export { default as Canvas } from "./Canvas.svelte"

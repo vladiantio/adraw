@@ -32,6 +32,8 @@ interface CanvasContextValue {
   setActiveTool: React.Dispatch<React.SetStateAction<ToolType>>
   selectedIds: Set<ElementId>
   setSelectedIds: React.Dispatch<React.SetStateAction<Set<string>>>
+  hideWhileTransforming: boolean
+  setHideWhileTransforming: React.Dispatch<React.SetStateAction<boolean>>
   options?: CanvasReactOptions
   setOptions: React.Dispatch<
     React.SetStateAction<CanvasReactOptions | undefined>
@@ -63,22 +65,34 @@ export function CanvasProvider({
   })
   const [activeTool, setActiveTool] = useState<ToolType>("select")
   const [selectedIds, setSelectedIds] = useState<Set<ElementId>>(new Set())
+  const [hideWhileTransforming, setHideWhileTransforming] = useState<boolean>(
+    defaultOptions?.hideOverlayWhileTransforming ?? true,
+  )
 
   const value = useMemo<CanvasContextValue>(
     () => ({
       activeTool,
       elements,
+      hideWhileTransforming,
       options,
       selectedIds,
       setActiveTool,
       setElements,
+      setHideWhileTransforming,
       setOptions,
       setSelectedIds,
       setViewport,
       vanillaRef,
       viewport,
     }),
-    [elements, viewport, activeTool, selectedIds, options],
+    [
+      elements,
+      viewport,
+      activeTool,
+      selectedIds,
+      hideWhileTransforming,
+      options,
+    ],
   )
 
   return (
@@ -194,6 +208,21 @@ export function useSelection() {
   }
 }
 
+export function useTransformOverlay() {
+  const { vanillaRef, hideWhileTransforming, setHideWhileTransforming } =
+    useCanvas()
+
+  const setHide = useCallback(
+    (hide: boolean) => {
+      vanillaRef?.current?.setHideOverlayWhileTransforming(hide)
+      setHideWhileTransforming(hide)
+    },
+    [vanillaRef, setHideWhileTransforming],
+  )
+
+  return { hideWhileTransforming, setHideWhileTransforming: setHide }
+}
+
 interface CanvasProps {
   className?: string
   style?: React.CSSProperties
@@ -217,6 +246,7 @@ export function Canvas({ className, style }: CanvasProps) {
 
     const vanilla = new AdrawCanvas({
       container: containerRef.current,
+      hideOverlayWhileTransforming: options?.hideOverlayWhileTransforming,
       initialViewport: options?.initialViewport,
       snapping: options?.snapping,
     })
@@ -260,6 +290,7 @@ export function Canvas({ className, style }: CanvasProps) {
       vanillaRef.current = null
     }
   }, [
+    options?.hideOverlayWhileTransforming,
     options?.initialViewport,
     options?.snapping,
     setActiveTool,

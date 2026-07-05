@@ -113,6 +113,17 @@ const { selectedIds, elements, selectAll, clearSelection, deleteSelected } =
 // selectedIds / elements: reactive getters
 ```
 
+### `useTransformOverlay()`
+
+```ts
+const { hideWhileTransforming, setHideWhileTransforming } = useTransformOverlay()
+// hideWhileTransforming: boolean — reactive getter; whether the selection
+// bounding box + resize/rotation handles are hidden while a resize/rotation
+// gesture is in progress (defaults to true; set via the
+// hideOverlayWhileTransforming option)
+setHideWhileTransforming(false)
+```
+
 ## License
 
 MIT

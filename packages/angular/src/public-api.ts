@@ -6,5 +6,6 @@ export {
   useHistory,
   useSelection,
   useTool,
+  useTransformOverlay,
   useViewport,
 } from "./lib/hooks"

@@ -107,7 +107,7 @@ Standalone component that mounts the drawing surface into its own host element (
 
 ### `CanvasService`
 
-The injectable that wraps the underlying `AdrawCanvas`. `provideCanvas()` registers it; inject it directly with `inject(CanvasService)` (or via `useCanvas()`) for full access. It exposes the read-only signals `elements`, `viewport`, `activeTool`, `selectedIds`, `canUndo`, `canRedo`, the imperative methods used by the hooks, and `instance` (the raw `AdrawCanvas`).
+The injectable that wraps the underlying `AdrawCanvas`. `provideCanvas()` registers it; inject it directly with `inject(CanvasService)` (or via `useCanvas()`) for full access. It exposes the read-only signals `elements`, `viewport`, `activeTool`, `selectedIds`, `canUndo`, `canRedo`, `hideWhileTransforming`, the imperative methods used by the hooks, and `instance` (the raw `AdrawCanvas`).
 
 ## Hooks
 
@@ -146,6 +146,16 @@ const { undo, redo, canUndo, canRedo } = useHistory()
 const { selectedIds, elements, selectAll, clearSelection, deleteSelected } =
   useSelection()
 // selectedIds, elements: Signal
+```
+
+### `useTransformOverlay()`
+
+```ts
+const { hideWhileTransforming, setHideWhileTransforming } = useTransformOverlay()
+// hideWhileTransforming: Signal<boolean> — whether the selection bounding box +
+// resize/rotation handles are hidden while a resize/rotation gesture is in
+// progress (defaults to true; set via the hideOverlayWhileTransforming option)
+setHideWhileTransforming(false)
 ```
 
 ## License

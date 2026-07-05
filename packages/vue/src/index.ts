@@ -27,6 +27,7 @@ export interface CanvasState {
   viewport: ViewportState
   activeTool: ToolType
   selectedIds: Set<ElementId>
+  hideWhileTransforming: boolean
   // Bumped on every "change" event (draw, erase, undo, redo, delete). Read by
   // useHistory() so canUndo/canRedo register a reactive dependency even
   // though AdrawCanvas's own history stack isn't itself reactive.
@@ -40,6 +41,7 @@ export function createCanvas(options?: CanvasVueOptions) {
   const state = reactive<CanvasState>({
     activeTool: core.getActiveTool(),
     elements: core.getElements(),
+    hideWhileTransforming: core.getHideOverlayWhileTransforming(),
     historyVersion: 0,
     selectedIds: core.getSelectedIds(),
     viewport: core.getViewport(),
@@ -150,6 +152,20 @@ export function useHistory() {
     },
     redo: () => canvas.core.redo(),
     undo: () => canvas.core.undo(),
+  }
+}
+
+export function useTransformOverlay() {
+  const canvas = useCanvas()
+
+  return {
+    get hideWhileTransforming() {
+      return canvas.state.hideWhileTransforming
+    },
+    setHideWhileTransforming: (hide: boolean) => {
+      canvas.core.setHideOverlayWhileTransforming(hide)
+      canvas.state.hideWhileTransforming = hide
+    },
   }
 }
 

@@ -15,6 +15,7 @@ export interface CanvasState {
   viewport: ViewportState
   activeTool: ToolType
   selectedIds: Set<ElementId>
+  hideWhileTransforming: boolean
 }
 
 export interface CanvasContextValue {
@@ -31,6 +32,7 @@ export function createCanvasContext(
   const state = $state<CanvasState>({
     activeTool: "select",
     elements: new Map(),
+    hideWhileTransforming: getOptions?.()?.hideOverlayWhileTransforming ?? true,
     selectedIds: new Set(),
     viewport: { x: 0, y: 0, zoom: 1 },
   })

@@ -121,6 +121,16 @@ selection.clearSelection()
 selection.deleteSelected()
 ```
 
+### `useTransformOverlay()`
+
+```ts
+const overlay = useTransformOverlay()
+// overlay.hideWhileTransforming: boolean — whether the selection bounding box +
+// resize/rotation handles are hidden while a resize/rotation gesture is in
+// progress (defaults to true; set via the hideOverlayWhileTransforming option)
+overlay.setHideWhileTransforming(false)
+```
+
 ## License
 
 MIT
