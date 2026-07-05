@@ -66,6 +66,8 @@ const rotationHandleClass = "adraw-rotation-handle"
 const resizeHandleClass = "adraw-resize-handle"
 const selectionBoxClass = "adraw-selection-box"
 
+const boundingBoxStrokeWidth = 2
+
 // Cursor for each resize/rotation handle, keyed by its `data-anchor` value.
 const handleCursorMap: Record<string, string> = {
   "bottom-center": "s-resize",
@@ -906,8 +908,9 @@ export class AdrawCanvas {
     rect.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
     rect.setAttribute("fill-opacity", "0.1")
     rect.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
-    rect.setAttribute("stroke-width", "1")
-    rect.setAttribute("stroke-dasharray", "4,4")
+    rect.setAttribute("stroke-opacity", "0.5")
+    rect.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
+    rect.setAttribute("vector-effect", "non-scaling-stroke")
     this.transformOverlay.appendChild(rect)
   }
 
@@ -958,8 +961,8 @@ export class AdrawCanvas {
     rect.setAttribute("height", String(height))
     rect.setAttribute("fill", "none")
     rect.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
-    rect.setAttribute("stroke-width", "2")
-    rect.setAttribute("stroke-dasharray", "5,5")
+    rect.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
+    rect.setAttribute("vector-effect", "non-scaling-stroke")
     overlay.appendChild(rect)
 
     // Handle positions
@@ -983,7 +986,8 @@ export class AdrawCanvas {
     rotationHandle.setAttribute("r", "6")
     rotationHandle.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
     rotationHandle.setAttribute("stroke", "#ffffff")
-    rotationHandle.setAttribute("stroke-width", "2")
+    rotationHandle.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
+    rotationHandle.setAttribute("vector-effect", "non-scaling-stroke")
     rotationHandle.setAttribute("data-anchor", "rotation")
     overlay.appendChild(rotationHandle)
 
@@ -994,7 +998,8 @@ export class AdrawCanvas {
     rotationLine.setAttribute("x2", String(x + width / 2))
     rotationLine.setAttribute("y2", String(rotationHandleY + 6))
     rotationLine.setAttribute("stroke", "var(--adraw-selection-color, #4f46e5)")
-    rotationLine.setAttribute("stroke-width", "2")
+    rotationLine.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
+    rotationLine.setAttribute("vector-effect", "non-scaling-stroke")
     overlay.appendChild(rotationLine)
 
     // Resize handles
@@ -1008,7 +1013,8 @@ export class AdrawCanvas {
       square.setAttribute("height", String(size))
       square.setAttribute("fill", "var(--adraw-selection-color, #4f46e5)")
       square.setAttribute("stroke", "#ffffff")
-      square.setAttribute("stroke-width", "2")
+      square.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
+      square.setAttribute("vector-effect", "non-scaling-stroke")
       square.setAttribute("data-anchor", handle.anchor)
       overlay.appendChild(square)
     }
