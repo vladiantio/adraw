@@ -52,6 +52,90 @@ function dragHandle(
   tool.onPointerUp(context, to, pointerEvent(null))
 }
 
+describe("select tool multi-element rotation", () => {
+  let tool: ReturnType<typeof createSelectTool>
+
+  beforeEach(() => {
+    tool = createSelectTool()
+  })
+
+  it("orbits elements around the selection center when rotating multiple", () => {
+    const a = createRectangle({
+      cornerRadius: 0,
+      height: 100,
+      locked: false,
+      rotation: 0,
+      visible: true,
+      width: 100,
+      x: 0,
+      y: 0,
+      zIndex: 0,
+    })
+    const b = createRectangle({
+      cornerRadius: 0,
+      height: 100,
+      locked: false,
+      rotation: 0,
+      visible: true,
+      width: 100,
+      x: 200,
+      y: 0,
+      zIndex: 0,
+    })
+    const context = makeContext([a, b])
+    context.setSelectedIds(new Set([a.id, b.id]))
+
+    // Selection bounds: x=0, y=0, width=300, height=100 → center at (150, 50).
+    // Drag from (150, 0) to (250, 50): startAngle = atan2(-50, 0) = -90°,
+    // currentAngle = atan2(0, 100) = 0°, deltaAngle = 90°.
+    // Element A center (50, 50) orbits to (150, -50) → x=100, y=-100.
+    // Element B center (250, 50) orbits to (150, 150) → x=100, y=100.
+    dragHandle(tool, context, "rotation", { x: 150, y: 0 }, { x: 250, y: 50 })
+
+    const resultA = context.getElements().get(a.id)!
+    expect(resultA.rotation % 360).toBeCloseTo(90)
+    expect(resultA.x).toBeCloseTo(100)
+    expect(resultA.y).toBeCloseTo(-100)
+
+    const resultB = context.getElements().get(b.id)!
+    expect(resultB.rotation % 360).toBeCloseTo(90)
+    expect(resultB.x).toBeCloseTo(100)
+    expect(resultB.y).toBeCloseTo(100)
+  })
+
+  it("rotates a single element in place without orbiting", () => {
+    const rect = createRectangle({
+      cornerRadius: 0,
+      height: 100,
+      locked: false,
+      rotation: 0,
+      visible: true,
+      width: 100,
+      x: 100,
+      y: 100,
+      zIndex: 0,
+    })
+    const context = makeContext([rect])
+    context.setSelectedIds(new Set([rect.id]))
+
+    // Single element: rotation center is its own center (150, 150).
+    // Drag from above to the right: 90° rotation.
+    dragHandle(
+      tool,
+      context,
+      "rotation",
+      { x: 150, y: 100 },
+      { x: 250, y: 150 },
+    )
+
+    const result = context.getElements().get(rect.id)!
+    // Single element rotates in place — only its rotation changes.
+    expect(result.rotation % 360).toBeCloseTo(90)
+    expect(result.x).toBeCloseTo(100)
+    expect(result.y).toBeCloseTo(100)
+  })
+})
+
 describe("select tool resize flipping", () => {
   let tool: ReturnType<typeof createSelectTool>
 

@@ -1,8 +1,4 @@
-import {
-  getElementAtPoint,
-  getElementsBounds,
-  rotateElement,
-} from "../elements"
+import { getElementAtPoint, getElementsBounds } from "../elements"
 import type {
   BoundingBox,
   CanvasElement,
@@ -232,16 +228,53 @@ export function createSelectTool(
           point.x - rotationCenter.x,
         )
         const deltaAngle = (currentAngle - startAngle) * (180 / Math.PI)
+        const deltaRad = (deltaAngle * Math.PI) / 180
+        const cos = Math.cos(deltaRad)
+        const sin = Math.sin(deltaRad)
 
         for (const id of selectedIds) {
           const original = originalPositions.get(id)
           if (original) {
             const element = elements.get(id)
             if (element) {
-              elements.set(
-                id,
-                rotateElement(element, original.rotation + deltaAngle),
-              )
+              // Orbit the element's center around the selection center
+              const ecx = original.x + original.width / 2
+              const ecy = original.y + original.height / 2
+              const dx = ecx - rotationCenter.x
+              const dy = ecy - rotationCenter.y
+              const ndx = dx * cos - dy * sin
+              const ndy = dx * sin + dy * cos
+              const ncx = rotationCenter.x + ndx
+              const ncy = rotationCenter.y + ndy
+
+              const newRotation = (original.rotation + deltaAngle) % 360
+
+              if (element.type === "path" && original.points) {
+                // Translate path points by the orbital delta
+                const tdx = ncx - ecx
+                const tdy = ncy - ecy
+                const newPoints = original.points.map((p) => ({
+                  x: p.x + tdx,
+                  y: p.y + tdy,
+                }))
+                const nb = getPointsBounds(newPoints)
+                elements.set(id, {
+                  ...element,
+                  height: nb.height,
+                  points: newPoints,
+                  rotation: newRotation,
+                  width: nb.width,
+                  x: nb.x,
+                  y: nb.y,
+                })
+              } else {
+                elements.set(id, {
+                  ...element,
+                  rotation: newRotation,
+                  x: ncx - original.width / 2,
+                  y: ncy - original.height / 2,
+                })
+              }
             }
           }
         }
