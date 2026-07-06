@@ -41,7 +41,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground overscroll-none antialiased [--adraw-background:var(--color-background)] [--adraw-stroke-color:var(--color-foreground)];
+    @apply bg-background text-foreground overscroll-none antialiased [--adraw-background:var(--color-background)] [--adraw-stroke:var(--color-foreground)] [--adraw-selection:var(--color-primary)];
   }
   [role="button"],
   button {
