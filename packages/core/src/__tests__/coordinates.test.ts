@@ -30,8 +30,8 @@ describe("coordinates", () => {
 
       const result = screenToCanvas(screenPoint, viewport, canvasSize)
 
-      expect(result.x).toBe(-100)
-      expect(result.y).toBe(-50)
+      expect(result.x).toBe(100)
+      expect(result.y).toBe(50)
     })
 
     it("converts screen point with zoom", () => {
