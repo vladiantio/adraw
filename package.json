@@ -23,6 +23,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@playwright/test": "^1.61.1",
     "oxfmt": "^0.56.0",
     "oxlint": "^1.71.0",
