@@ -35,6 +35,7 @@ Pass `container` to mount immediately, or omit it and call `canvas.mount(el)` la
 | `eraser`    | Erase elements by painting over them      |
 | `rectangle` | Draw rectangles                           |
 | `ellipse`   | Draw ellipses                             |
+| `line`      | Draw lines                                |
 | `media`     | Insert images                             |
 
 ```ts
@@ -49,6 +50,7 @@ Each element on the canvas has a type:
 - `rectangle` — rounded or sharp-cornered rect
 - `ellipse` — oval / circle
 - `path` — freehand stroke (Catmull-Rom smoothing)
+- `line` — line
 - `media` — raster image
 - `group` — container for other elements
 

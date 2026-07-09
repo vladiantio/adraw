@@ -8,7 +8,7 @@ A lightweight, framework-agnostic infinity canvas library built on SVG. Supports
 
 - Infinite canvas with smooth pan and zoom
 - Freehand drawing with Catmull-Rom spline smoothing
-- Shape tools: Rectangle, Ellipse
+- Shape tools: Rectangle, Ellipse, Line
 - Selection with multi-select, resize, rotation, and flip
 - Eraser tool
 - Undo/redo history
@@ -27,6 +27,7 @@ A lightweight, framework-agnostic infinity canvas library built on SVG. Supports
 | Eraser    | Erase drawn paths                         |
 | Rectangle | Draw rectangles                           |
 | Ellipse   | Draw ellipses                             |
+| Line      | Draw lines                                |
 | Media     | Place images on the canvas                |
 
 ## Packages
