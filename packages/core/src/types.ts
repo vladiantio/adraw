@@ -48,13 +48,6 @@ export interface EllipseElement extends BaseElement {
   type: "ellipse"
 }
 
-export interface StarElement extends BaseElement {
-  type: "star"
-  points: number
-  innerRadius: number
-  outerRadius: number
-}
-
 export interface LineElement extends BaseElement {
   type: "line"
   startX: number
@@ -92,7 +85,6 @@ export interface GroupElement extends BaseElement {
 export type CanvasElement =
   | RectangleElement
   | EllipseElement
-  | StarElement
   | LineElement
   | PathElement
   | MediaElement

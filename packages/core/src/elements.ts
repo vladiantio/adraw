@@ -10,7 +10,6 @@ import type {
   Point,
   RectangleElement,
   ResizeAnchor,
-  StarElement,
 } from "./types"
 
 export type ElementFactory<T extends CanvasElement> = Omit<T, "id" | "type"> & {
@@ -39,14 +38,6 @@ export function createEllipse(
     ...factory,
     id: factory.id ?? generateId(),
     type: "ellipse",
-  }
-}
-
-export function createStar(factory: ElementFactory<StarElement>): StarElement {
-  return {
-    ...factory,
-    id: factory.id ?? generateId(),
-    type: "star",
   }
 }
 

@@ -48,7 +48,6 @@ Each element on the canvas has a type:
 
 - `rectangle` — rounded or sharp-cornered rect
 - `ellipse` — oval / circle
-- `star` — star shape with configurable point count
 - `path` — freehand stroke (Catmull-Rom smoothing)
 - `media` — raster image
 - `group` — container for other elements
