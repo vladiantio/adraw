@@ -11,6 +11,7 @@ toolbar.innerHTML = `
   <button data-tool="rectangle" title="Rectangle (R)">Rectangle</button>
   <button data-tool="ellipse" title="Ellipse (E)">Ellipse</button>
   <button data-tool="draw" title="Draw (D)">Draw</button>
+  <button data-tool="line" title="Line (L)">Line</button>
   <button data-tool="eraser" title="Eraser (E)">Eraser</button>
   <div class="separator"></div>
   <button data-action="undo" title="Undo (Ctrl+Z)">Undo</button>

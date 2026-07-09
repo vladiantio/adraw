@@ -59,6 +59,8 @@ export function createSelectTool(
       height: number
       rotation: number
       points?: Point[]
+      lineStart?: Point
+      lineEnd?: Point
     }
   >()
   let dragHandle: string | null = null
@@ -159,6 +161,10 @@ export function createSelectTool(
         if (el) {
           originalPositions.set(id, {
             height: el.height,
+            lineEnd:
+              el.type === "line" ? { x: el.endX, y: el.endY } : undefined,
+            lineStart:
+              el.type === "line" ? { x: el.startX, y: el.startY } : undefined,
             // Paths are rendered from their absolute `points`, so a resize/move
             // must transform the points too. Snapshot them to transform against
             // a stable source instead of the already-mutated live element.
@@ -267,6 +273,45 @@ export function createSelectTool(
                   x: nb.x,
                   y: nb.y,
                 })
+              } else if (
+                element.type === "line" &&
+                original.lineStart &&
+                original.lineEnd
+              ) {
+                // Rotate the line's endpoints about the selection center.
+                // The line keeps rotation=0; its visual rotation comes purely
+                // from the changed endpoint coordinates.
+                const cosA = Math.cos(deltaRad)
+                const sinA = Math.sin(deltaRad)
+                const rotatePoint = (p: Point, center: Point) => {
+                  const rx = p.x - center.x
+                  const ry = p.y - center.y
+                  return {
+                    x: center.x + rx * cosA - ry * sinA,
+                    y: center.y + rx * sinA + ry * cosA,
+                  }
+                }
+                const rotatedStart = rotatePoint(
+                  original.lineStart,
+                  rotationCenter,
+                )
+                const rotatedEnd = rotatePoint(original.lineEnd, rotationCenter)
+                const minX = Math.min(rotatedStart.x, rotatedEnd.x)
+                const minY = Math.min(rotatedStart.y, rotatedEnd.y)
+                const maxX = Math.max(rotatedStart.x, rotatedEnd.x)
+                const maxY = Math.max(rotatedStart.y, rotatedEnd.y)
+                elements.set(id, {
+                  ...element,
+                  endX: rotatedEnd.x,
+                  endY: rotatedEnd.y,
+                  height: Math.max(1, maxY - minY),
+                  rotation: 0,
+                  startX: rotatedStart.x,
+                  startY: rotatedStart.y,
+                  width: Math.max(1, maxX - minX),
+                  x: minX,
+                  y: minY,
+                })
               } else {
                 elements.set(id, {
                   ...element,
@@ -276,6 +321,54 @@ export function createSelectTool(
                 })
               }
             }
+          }
+        }
+        context.setElements(new Map(elements))
+      } else if (dragHandle === "line-start" || dragHandle === "line-end") {
+        // Drag a line's endpoint handle — move that endpoint and update bbox.
+        for (const id of selectedIds) {
+          const element = elements.get(id)
+          const original = originalPositions.get(id)
+          if (
+            element?.type !== "line" ||
+            !original ||
+            !original.lineStart ||
+            !original.lineEnd
+          ) {
+            continue
+          }
+          if (dragHandle === "line-start") {
+            const newX = Math.min(point.x, original.lineEnd.x)
+            const newY = Math.min(point.y, original.lineEnd.y)
+            const newW = Math.abs(point.x - original.lineEnd.x)
+            const newH = Math.abs(point.y - original.lineEnd.y)
+            elements.set(id, {
+              ...element,
+              endX: original.lineEnd.x,
+              endY: original.lineEnd.y,
+              height: Math.max(1, newH),
+              startX: point.x,
+              startY: point.y,
+              width: Math.max(1, newW),
+              x: newX,
+              y: newY,
+            })
+          } else {
+            const newX = Math.min(original.lineStart.x, point.x)
+            const newY = Math.min(original.lineStart.y, point.y)
+            const newW = Math.abs(point.x - original.lineStart.x)
+            const newH = Math.abs(point.y - original.lineStart.y)
+            elements.set(id, {
+              ...element,
+              endX: point.x,
+              endY: point.y,
+              height: Math.max(1, newH),
+              startX: original.lineStart.x,
+              startY: original.lineStart.y,
+              width: Math.max(1, newW),
+              x: newX,
+              y: newY,
+            })
           }
         }
         context.setElements(new Map(elements))
@@ -368,6 +461,52 @@ export function createSelectTool(
               return
             }
 
+            if (
+              element.type === "line" &&
+              singleOriginal.lineStart &&
+              singleOriginal.lineEnd
+            ) {
+              const scaleX = changesWidth ? newWidth / bounds.width : 1
+              const scaleY = changesHeight ? newHeight / bounds.height : 1
+              const scaledStart = {
+                x: anchorX + (singleOriginal.lineStart.x - anchorX) * scaleX,
+                y: anchorY + (singleOriginal.lineStart.y - anchorY) * scaleY,
+              }
+              const scaledEnd = {
+                x: anchorX + (singleOriginal.lineEnd.x - anchorX) * scaleX,
+                y: anchorY + (singleOriginal.lineEnd.y - anchorY) * scaleY,
+              }
+              const minX = Math.min(scaledStart.x, scaledEnd.x)
+              const minY = Math.min(scaledStart.y, scaledEnd.y)
+              const maxX = Math.max(scaledStart.x, scaledEnd.x)
+              const maxY = Math.max(scaledStart.y, scaledEnd.y)
+              const nb = {
+                height: Math.max(1, maxY - minY),
+                width: Math.max(1, maxX - minX),
+                x: minX,
+                y: minY,
+              }
+
+              const ddx = cx - (nb.x + nb.width / 2)
+              const ddy = cy - (nb.y + nb.height / 2)
+              const tx = ddx - (ddx * cos - ddy * sin)
+              const ty = ddy - (ddx * sin + ddy * cos)
+
+              elements.set(singleId, {
+                ...element,
+                endX: scaledEnd.x + tx,
+                endY: scaledEnd.y + ty,
+                height: nb.height,
+                startX: scaledStart.x + tx,
+                startY: scaledStart.y + ty,
+                width: nb.width,
+                x: nb.x + tx,
+                y: nb.y + ty,
+              })
+              context.setElements(new Map(elements))
+              return
+            }
+
             // Anchor offset from center, before and after the resize. The
             // anchor is the corner/edge opposite the dragged handle.
             const signX = changesWidth ? (movesLeft ? 1 : -1) : 0
@@ -443,6 +582,35 @@ export function createSelectTool(
                   x: nb.x,
                   y: nb.y,
                 })
+              } else if (
+                element.type === "line" &&
+                original.lineStart &&
+                original.lineEnd
+              ) {
+                // Scale the line's absolute endpoints about the same anchor.
+                const scaledStart = {
+                  x: anchorX + (original.lineStart.x - anchorX) * scaleX,
+                  y: anchorY + (original.lineStart.y - anchorY) * scaleY,
+                }
+                const scaledEnd = {
+                  x: anchorX + (original.lineEnd.x - anchorX) * scaleX,
+                  y: anchorY + (original.lineEnd.y - anchorY) * scaleY,
+                }
+                const minX = Math.min(scaledStart.x, scaledEnd.x)
+                const minY = Math.min(scaledStart.y, scaledEnd.y)
+                const maxX = Math.max(scaledStart.x, scaledEnd.x)
+                const maxY = Math.max(scaledStart.y, scaledEnd.y)
+                elements.set(id, {
+                  ...element,
+                  endX: scaledEnd.x,
+                  endY: scaledEnd.y,
+                  height: Math.max(1, maxY - minY),
+                  startX: scaledStart.x,
+                  startY: scaledStart.y,
+                  width: Math.max(1, maxX - minX),
+                  x: minX,
+                  y: minY,
+                })
               } else {
                 // Scale each element's size and position relative to the fixed
                 // anchor so multi-element selections keep their layout.
@@ -496,6 +664,21 @@ export function createSelectTool(
                     x: p.x + delta.x,
                     y: p.y + delta.y,
                   })),
+                  x: original.x + delta.x,
+                  y: original.y + delta.y,
+                })
+              } else if (
+                element.type === "line" &&
+                original.lineStart &&
+                original.lineEnd
+              ) {
+                // Lines also render from absolute start/end coordinates.
+                elements.set(id, {
+                  ...element,
+                  endX: original.lineEnd.x + delta.x,
+                  endY: original.lineEnd.y + delta.y,
+                  startX: original.lineStart.x + delta.x,
+                  startY: original.lineStart.y + delta.y,
                   x: original.x + delta.x,
                   y: original.y + delta.y,
                 })

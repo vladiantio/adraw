@@ -21,6 +21,7 @@ import {
   createEllipseTool,
   createEraserTool,
   createHandTool,
+  createLineTool,
   createMediaTool,
   createRectangleTool,
   createSelectTool,
@@ -29,6 +30,7 @@ import type { Tool, ToolContext } from "./tools/base"
 import type {
   CanvasElement,
   ElementId,
+  LineElement,
   Point,
   ToolType,
   ViewportState,
@@ -97,9 +99,14 @@ const handleCursorMap: Record<string, string> = {
 }
 
 function getTransformElementAttribute(element: CanvasElement) {
-  // Paths are drawn from absolute points (no translate), so they must rotate
-  // about their absolute bbox center. Other elements are translated to (x, y)
-  // first, so their pivot is the local center (width/2, height/2).
+  // Paths are drawn from absolute coordinates (no translate), so they must
+  // rotate about their absolute bbox center. Lines never use rotate() — their
+  // visual rotation comes purely from changed endpoint coordinates. Other
+  // elements are translated to (x, y) first, so their pivot is the local center
+  // (width/2, height/2).
+  if (element.type === "line") {
+    return ""
+  }
   if (element.type === "path") {
     const cx = element.x + element.width / 2
     const cy = element.y + element.height / 2
@@ -184,6 +191,21 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
       break
     }
 
+    case "line": {
+      const line = document.createElementNS(svgNamespaceURI, "line")
+      line.setAttribute("x1", `${element.startX}`)
+      line.setAttribute("y1", `${element.startY}`)
+      line.setAttribute("x2", `${element.endX}`)
+      line.setAttribute("y2", `${element.endY}`)
+      line.setAttribute("stroke", element.strokeColor || STROKE_COLOR)
+      line.setAttribute(
+        "stroke-width",
+        `${element.strokeWidth || STROKE_WIDTH}`,
+      )
+      group.appendChild(line)
+      break
+    }
+
     case "path": {
       const pathData = pointsToPath(element.points, element.smoothing)
       const path = document.createElementNS(svgNamespaceURI, "path")
@@ -251,6 +273,7 @@ export class AdrawCanvas {
     edges: SVGLineElement[]
     rotationHandle: SVGCircleElement
     resizeHandles: SVGRectElement[]
+    lineHandles?: SVGRectElement[]
   } | null = null
   // Persistent marquee (rubber-band) node, likewise reused across renders.
   private selectionBoxNode: SVGRectElement | null = null
@@ -258,7 +281,7 @@ export class AdrawCanvas {
 
   // Touch gesture state
   private pinchStartDistance: number | null = null
-  private pinchStartCenter: { x: number; y: number } | null = null
+  private pinchStartCenter: Point | null = null
   private pinchViewportState: ViewportState | null = null
 
   constructor(options: AdrawCanvasOptions = {}) {
@@ -271,6 +294,7 @@ export class AdrawCanvas {
     this.tools.set("hand", createHandTool())
     this.tools.set("rectangle", createRectangleTool())
     this.tools.set("ellipse", createEllipseTool())
+    this.tools.set("line", createLineTool())
     this.tools.set("draw", createDrawTool())
     this.tools.set("eraser", createEraserTool())
     this.tools.set("media", createMediaTool())
@@ -518,6 +542,10 @@ export class AdrawCanvas {
         }
         case "r": {
           this.setActiveTool("rectangle")
+          break
+        }
+        case "l": {
+          this.setActiveTool("line")
           break
         }
         case "m": {
@@ -907,6 +935,7 @@ export class AdrawCanvas {
       ellipse: "crosshair",
       eraser: "crosshair",
       hand: "grab",
+      line: "crosshair",
       media: "copy",
       rectangle: "crosshair",
       select: "default",
@@ -1040,12 +1069,27 @@ export class AdrawCanvas {
       return square
     })
 
+    // Line endpoint handles
+    const lineAnchors = ["line-start", "line-end"]
+    const lineHandles = lineAnchors.map((anchor) => {
+      const square = document.createElementNS(svgNamespaceURI, "rect")
+      square.classList.add(resizeHandleClass)
+      square.setAttribute("fill", BACKGROUND_COLOR)
+      square.setAttribute("stroke", SELECTION_COLOR)
+      square.setAttribute("stroke-width", `${boundingBoxStrokeWidth}`)
+      square.setAttribute("vector-effect", "non-scaling-stroke")
+      square.setAttribute("data-anchor", anchor)
+      group.appendChild(square)
+      return square
+    })
+
     // Not appended here — `renderTransformOverlay` attaches the group only when
     // there's a selection and detaches it otherwise.
     this.overlayNodes = {
       boundingBox,
       edges,
       group,
+      lineHandles,
       resizeHandles,
       rotationHandle,
     }
@@ -1099,53 +1143,101 @@ export class AdrawCanvas {
 
     const handleSize = resizeHandleSize / this.viewport.zoom
 
-    // Main bounding box
-    const rect = nodes.boundingBox
-    rect.setAttribute("x", `${x}`)
-    rect.setAttribute("y", `${y}`)
-    rect.setAttribute("rx", `${handleSize / 4}`)
-    rect.setAttribute("width", `${width}`)
-    rect.setAttribute("height", `${height}`)
+    // Check if the single selected element is a line
+    const isLine =
+      selectedIds.size === 1 &&
+      elements.get([...selectedIds][0])?.type === "line"
 
-    // Edge bands — same order as `edgeAnchors` in `ensureOverlayNodes`.
-    const edgeGeom = [
-      { x1: x, x2: x + width, y1: y, y2: y },
-      { x1: x + width, x2: x + width, y1: y, y2: y + height },
-      { x1: x, x2: x + width, y1: y + height, y2: y + height },
-      { x1: x, x2: x, y1: y, y2: y + height },
-    ]
-    for (let i = 0; i < edgeGeom.length; i++) {
-      const line = nodes.edges[i]
-      const g = edgeGeom[i]
-      line.setAttribute("x1", `${g.x1}`)
-      line.setAttribute("y1", `${g.y1}`)
-      line.setAttribute("x2", `${g.x2}`)
-      line.setAttribute("y2", `${g.y2}`)
-      line.setAttribute("stroke-width", `${handleSize}`)
-    }
+    if (isLine) {
+      const lineEl = elements.get([...selectedIds][0]) as LineElement
 
-    // Rotation handle
-    const rotationHandleY = y - rotationHandleSpacing / this.viewport.zoom
-    const rotationHandleR = rotationHandleRadio / this.viewport.zoom
-    nodes.rotationHandle.setAttribute("cx", `${x + width / 2}`)
-    nodes.rotationHandle.setAttribute("cy", `${rotationHandleY}`)
-    nodes.rotationHandle.setAttribute("r", `${rotationHandleR}`)
+      // Hide standard overlay elements
+      nodes.boundingBox.setAttribute("display", "none")
+      for (const edge of nodes.edges) {
+        edge.setAttribute("display", "none")
+      }
+      nodes.rotationHandle.setAttribute("display", "none")
+      for (const handle of nodes.resizeHandles) {
+        handle.setAttribute("display", "none")
+      }
 
-    // Resize handles — same order as `handleAnchors` in `ensureOverlayNodes`.
-    const handleGeom = [
-      { x, y },
-      { x: x + width, y },
-      { x: x + width, y: y + height },
-      { x, y: y + height },
-    ]
-    for (let i = 0; i < handleGeom.length; i++) {
-      const square = nodes.resizeHandles[i]
-      const h = handleGeom[i]
-      square.setAttribute("x", `${h.x - handleSize / 2}`)
-      square.setAttribute("y", `${h.y - handleSize / 2}`)
-      square.setAttribute("rx", `${handleSize / 4}`)
-      square.setAttribute("width", `${handleSize}`)
-      square.setAttribute("height", `${handleSize}`)
+      // Show line endpoint handles
+      const anchors: Point[] = [
+        { x: lineEl.startX, y: lineEl.startY },
+        { x: lineEl.endX, y: lineEl.endY },
+      ]
+      for (let i = 0; i < anchors.length; i++) {
+        const h = anchors[i]
+        const node = nodes.lineHandles![i]
+        node.setAttribute("display", "inline")
+        node.setAttribute("x", `${h.x - handleSize / 2}`)
+        node.setAttribute("y", `${h.y - handleSize / 2}`)
+        node.setAttribute("rx", `${handleSize}`)
+        node.setAttribute("width", `${handleSize}`)
+        node.setAttribute("height", `${handleSize}`)
+      }
+    } else {
+      // Show standard overlay, hide line handles
+      nodes.boundingBox.setAttribute("display", "inline")
+      for (const edge of nodes.edges) {
+        edge.setAttribute("display", "inline")
+      }
+      nodes.rotationHandle.setAttribute("display", "inline")
+      for (const handle of nodes.resizeHandles) {
+        handle.setAttribute("display", "inline")
+      }
+      for (const handle of nodes.lineHandles!) {
+        handle.setAttribute("display", "none")
+      }
+
+      // Main bounding box
+      const rect = nodes.boundingBox
+      rect.setAttribute("x", `${x}`)
+      rect.setAttribute("y", `${y}`)
+      rect.setAttribute("rx", `${handleSize / 4}`)
+      rect.setAttribute("width", `${width}`)
+      rect.setAttribute("height", `${height}`)
+
+      // Edge bands — same order as `edgeAnchors` in `ensureOverlayNodes`.
+      const edgeGeom = [
+        { x1: x, x2: x + width, y1: y, y2: y },
+        { x1: x + width, x2: x + width, y1: y, y2: y + height },
+        { x1: x, x2: x + width, y1: y + height, y2: y + height },
+        { x1: x, x2: x, y1: y, y2: y + height },
+      ]
+      for (let i = 0; i < edgeGeom.length; i++) {
+        const line = nodes.edges[i]
+        const g = edgeGeom[i]
+        line.setAttribute("x1", `${g.x1}`)
+        line.setAttribute("y1", `${g.y1}`)
+        line.setAttribute("x2", `${g.x2}`)
+        line.setAttribute("y2", `${g.y2}`)
+        line.setAttribute("stroke-width", `${handleSize}`)
+      }
+
+      // Rotation handle
+      const rotationHandleY = y - rotationHandleSpacing / this.viewport.zoom
+      const rotationHandleR = rotationHandleRadio / this.viewport.zoom
+      nodes.rotationHandle.setAttribute("cx", `${x + width / 2}`)
+      nodes.rotationHandle.setAttribute("cy", `${rotationHandleY}`)
+      nodes.rotationHandle.setAttribute("r", `${rotationHandleR}`)
+
+      // Resize handle — same order as `handleAnchors` in `ensureOverlayNodes`.
+      const handleGeom = [
+        { x, y },
+        { x: x + width, y },
+        { x: x + width, y: y + height },
+        { x, y: y + height },
+      ]
+      for (let i = 0; i < handleGeom.length; i++) {
+        const square = nodes.resizeHandles[i]
+        const h = handleGeom[i]
+        square.setAttribute("x", `${h.x - handleSize / 2}`)
+        square.setAttribute("y", `${h.y - handleSize / 2}`)
+        square.setAttribute("rx", `${handleSize / 4}`)
+        square.setAttribute("width", `${handleSize}`)
+        square.setAttribute("height", `${handleSize}`)
+      }
     }
   }
 
@@ -1192,6 +1284,11 @@ export class AdrawCanvas {
       }
 
       group.classList.toggle(selectedClass, selectedIds.has(element.id))
+      this.updateLineStrokeForSelection(
+        group,
+        element,
+        selectedIds.has(element.id),
+      )
     }
   }
 
@@ -1236,6 +1333,14 @@ export class AdrawCanvas {
     group.setAttribute("transform", getTransformElementAttribute(element))
 
     switch (element.type) {
+      case "line": {
+        const lineElement = group.getElementsByTagName("line")[0]
+        lineElement.setAttribute("x1", `${element.startX}`)
+        lineElement.setAttribute("y1", `${element.startY}`)
+        lineElement.setAttribute("x2", `${element.endX}`)
+        lineElement.setAttribute("y2", `${element.endY}`)
+        break
+      }
       case "path": {
         const pathElement = group.getElementsByTagName("path")[0]
         pathElement.setAttribute(
@@ -1298,6 +1403,7 @@ export class AdrawCanvas {
       }
       const isSelected = selectedIds.has(element.id)
       group.classList.toggle(selectedClass, isSelected)
+      this.updateLineStrokeForSelection(group, element, isSelected)
 
       if (!isSelected) {
         continue
@@ -1306,6 +1412,23 @@ export class AdrawCanvas {
       // The select tool already transforms geometry in canvas space, so just
       // re-render each node from the current element state.
       this.updateElementGeometry(group, element)
+    }
+  }
+
+  private updateLineStrokeForSelection(
+    group: SVGGElement,
+    element: CanvasElement,
+    isSelected: boolean,
+  ): void {
+    if (element.type !== "line") {
+      return
+    }
+    const lineEl = group.getElementsByTagName("line")[0]
+    if (lineEl) {
+      lineEl.setAttribute(
+        "stroke",
+        isSelected ? SELECTION_COLOR : element.strokeColor || STROKE_COLOR,
+      )
     }
   }
 

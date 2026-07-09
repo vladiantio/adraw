@@ -21,6 +21,7 @@ export type ElementType =
   | "rectangle"
   | "ellipse"
   | "star"
+  | "line"
   | "path"
   | "media"
   | "group"
@@ -54,12 +55,22 @@ export interface StarElement extends BaseElement {
   outerRadius: number
 }
 
+export interface LineElement extends BaseElement {
+  type: "line"
+  startX: number
+  startY: number
+  endX: number
+  endY: number
+  strokeWidth: number
+  strokeColor: string
+}
+
 export interface PathElement extends BaseElement {
   type: "path"
   points: Point[]
   strokeWidth: number
   strokeColor: string
-  // Spline tension used when rendering the stroke (0 = straight segments,
+  // Spline tension used when rendering the stroke (default = straight segments,
   // 1 = full Catmull-Rom curve). Falls back to DEFAULT_PATH_SMOOTHING when
   // omitted.
   smoothing?: number
@@ -82,6 +93,7 @@ export type CanvasElement =
   | RectangleElement
   | EllipseElement
   | StarElement
+  | LineElement
   | PathElement
   | MediaElement
   | GroupElement
@@ -93,6 +105,7 @@ export type ToolType =
   | "eraser"
   | "rectangle"
   | "ellipse"
+  | "line"
   | "media"
 
 export interface ViewportState {
