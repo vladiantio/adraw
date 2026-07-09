@@ -196,7 +196,6 @@ describe("select tool resize flipping", () => {
   it("mirrors a path's points when a corner handle is dragged across the anchor", () => {
     // An L-shaped path so the mirror is observable: points at the bbox edges.
     const path = createPath({
-      fillColor: "transparent",
       height: 100,
       locked: false,
       points: [
