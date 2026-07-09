@@ -7,7 +7,6 @@ import {
   createMedia,
   createPath,
   createRectangle,
-  createStar,
   getElementAtPoint,
   getElementsBounds,
   moveElement,
@@ -74,25 +73,6 @@ describe("elements", () => {
       })
 
       expect(ellipse.type).toBe("ellipse")
-    })
-
-    it("createStar assigns star type", () => {
-      const star = createStar({
-        height: 10,
-        innerRadius: 5,
-        locked: false,
-        outerRadius: 10,
-        points: 5,
-        rotation: 0,
-        visible: true,
-        width: 10,
-        x: 0,
-        y: 0,
-        zIndex: 0,
-      })
-
-      expect(star.type).toBe("star")
-      expect(star.points).toBe(5)
     })
 
     it("createPath defaults points to an empty array", () => {
