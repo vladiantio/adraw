@@ -190,7 +190,7 @@ export function createDrawTool(options: DrawToolOptions = {}): Tool {
         const elements = context.getElements()
         elements.set(element.id, element)
         context.setElements(elements)
-        context.setSelectedIds(new Set([element.id]))
+        context.setSelectedIds(new Set())
         context.pushHistory()
       }
 
