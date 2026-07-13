@@ -83,6 +83,7 @@ export function createRectangleTool(options: RectangleToolOptions = {}): Tool {
         context.setElements(elements)
         context.setSelectedIds(new Set([element.id]))
         context.pushHistory()
+        context.setActiveTool("select")
       }
 
       state.startPoint = null

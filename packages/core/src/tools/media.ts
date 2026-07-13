@@ -79,6 +79,7 @@ export function createMediaTool(options: MediaToolOptions = {}): Tool {
       context.setElements(elements)
       context.setSelectedIds(new Set([element.id]))
       context.pushHistory()
+      context.setActiveTool("select")
     } catch (error) {
       console.error("Failed to load media:", error)
     }

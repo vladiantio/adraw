@@ -74,6 +74,7 @@ export function createEllipseTool(): Tool {
         context.setElements(elements)
         context.setSelectedIds(new Set([element.id]))
         context.pushHistory()
+        context.setActiveTool("select")
       }
 
       state.startPoint = null
