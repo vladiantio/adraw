@@ -7,16 +7,11 @@
 }
 
 @theme {
-  --color-background: light-dark(oklch(1 0 0), oklch(0.145 0 0));
-  --color-foreground: light-dark(oklch(0.145 0 0), oklch(0.985 0 0));
-  --color-primary: light-dark(
-    oklch(0.44 0.16 303.373),
-    oklch(0.84 0.16 303.373)
-  );
-  --color-primary-foreground: light-dark(
-    oklch(1 0 0),
-    oklch(0.205 0.16 303.373)
-  );
+  --color-background: light-dark(oklch(1 0 0), oklch(0.225 0 0));
+  --color-foreground: light-dark(oklch(0.225 0 0), oklch(0.985 0 0));
+  --color-card: light-dark(oklch(0.9 0 0), oklch(0.325 0 0));
+  --color-primary: light-dark(oklch(0.44 0.12 248), oklch(0.84 0.12 248));
+  --color-primary-foreground: light-dark(oklch(1 0 0), oklch(0.205 0.12 248));
   --color-secondary: light-dark(oklch(0.97 0 0), oklch(0.269 0 0));
   --color-secondary-foreground: light-dark(oklch(0.205 0 0), oklch(0.985 0 0));
   --color-muted: light-dark(oklch(0.97 0 0), oklch(0.269 0 0));
