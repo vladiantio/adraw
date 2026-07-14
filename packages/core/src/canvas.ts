@@ -895,7 +895,7 @@ export class AdrawCanvas {
 
     this.on("change", () => {
       if (this.getActiveTool() === "select") {
-        this.selectElements()
+        this.renderSelectElements()
       } else {
         this.reconcileElements()
       }
@@ -910,7 +910,7 @@ export class AdrawCanvas {
     })
 
     this.on("selectionChange", () => {
-      this.selectElements()
+      this.renderSelectElements()
     })
   }
 
@@ -1380,7 +1380,7 @@ export class AdrawCanvas {
     }
   }
 
-  private selectElements(): void {
+  private renderSelectElements(): void {
     if (!this.elementsGroup) {
       return
     }
