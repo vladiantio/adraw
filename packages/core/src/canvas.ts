@@ -1297,11 +1297,6 @@ export class AdrawCanvas {
       }
 
       group.classList.toggle(selectedClass, selectedIds.has(element.id))
-      this.updateLineStrokeForSelection(
-        group,
-        element,
-        selectedIds.has(element.id),
-      )
     }
   }
 
@@ -1416,7 +1411,6 @@ export class AdrawCanvas {
       }
       const isSelected = selectedIds.has(element.id)
       group.classList.toggle(selectedClass, isSelected)
-      this.updateLineStrokeForSelection(group, element, isSelected)
 
       if (!isSelected) {
         continue
@@ -1425,23 +1419,6 @@ export class AdrawCanvas {
       // The select tool already transforms geometry in canvas space, so just
       // re-render each node from the current element state.
       this.updateElementGeometry(group, element)
-    }
-  }
-
-  private updateLineStrokeForSelection(
-    group: SVGGElement,
-    element: CanvasElement,
-    isSelected: boolean,
-  ): void {
-    if (element.type !== "line") {
-      return
-    }
-    const lineEl = group.getElementsByTagName("line")[0]
-    if (lineEl) {
-      lineEl.setAttribute(
-        "stroke",
-        isSelected ? SELECTION_COLOR : element.strokeColor || STROKE_COLOR,
-      )
     }
   }
 
