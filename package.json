@@ -24,6 +24,8 @@
     "dev:web-components": "pnpm --filter=web-components dev",
     "dev:examples": "pnpm --filter=examples dev",
     "dev:web": "pnpm --filter=web dev",
+    "ci:version": "changeset version",
+    "ci:release": "pnpm install && pnpm build:all && npm login && changeset publish",
     "lint": "oxlint && oxfmt --check",
     "lint:fix": "(oxlint --fix || true) && oxfmt",
     "lint:github": "oxlint --format=github",
