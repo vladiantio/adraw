@@ -1,5 +1,13 @@
-<div id="app" class="w-full relative">
-  <div class="toolbar flex items-center gap-1 p-1 w-fit absolute top-2 left-1/2 -translate-x-1/2 bg-card rounded-lg">
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = HTMLAttributes<"div">;
+
+const { class: className, ...props } = Astro.props;
+---
+
+<div class:list={["relative", className]} {...props}>
+  <div class="toolbar flex items-center gap-1 p-1 w-fit absolute top-2 left-1/2 -translate-x-1/2 bg-card rounded-lg shadow-lg shadow-black/5 border">
     <button class="border border-transparent rounded-md hover:bg-primary/10 active:border-border bg-primary/20 text-primary size-10 inline-flex items-center justify-center" data-tool="select" title="Select (V)">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mouse-pointer-icon lucide-mouse-pointer"><path d="M12.586 12.586 19 19"/><path d="M3.688 3.037a.497.497 0 0 0-.651.651l6.5 15.999a.501.501 0 0 0 .947-.062l1.569-6.083a2 2 0 0 1 1.448-1.479l6.124-1.579a.5.5 0 0 0 .063-.947z"/></svg>
     </button>
@@ -40,7 +48,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ratio-icon lucide-ratio"><rect width="12" height="20" x="6" y="2" rx="2"/><rect width="20" height="12" x="2" y="6" rx="2"/></svg>
     </button>
   </div>
-  <div class="canvas-container" style="width: 100%; height: calc(100vh - 50px); border-width: 1px;"></div>
+  <div class="canvas-container size-full"></div>
 </div>
 
 <script>
