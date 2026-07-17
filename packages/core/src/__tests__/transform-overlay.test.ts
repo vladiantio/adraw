@@ -177,4 +177,73 @@ describe("transform overlay rotation with multi-selection", () => {
 
     expect(getOverlayGroupTransform(canvas)).toBeNull()
   })
+
+  it("removes overlay when switching from select to hand tool", () => {
+    const rect = createRectangle({
+      cornerRadius: 0,
+      height: 100,
+      locked: false,
+      rotation: 45,
+      visible: true,
+      width: 100,
+      x: 0,
+      y: 0,
+      zIndex: 0,
+    })
+    setElements([rect])
+    setSelectedIds([rect.id])
+    canvas.render()
+
+    expect(getOverlayGroupTransform(canvas)).toBe("rotate(45, 50, 50)")
+
+    canvas.setActiveTool("hand")
+
+    expect(getOverlayGroupTransform(canvas)).toBeNull()
+  })
+
+  it("clears selection when select tool is deactivated via tool switch", () => {
+    const rect = createRectangle({
+      cornerRadius: 0,
+      height: 100,
+      locked: false,
+      rotation: 0,
+      visible: true,
+      width: 100,
+      x: 0,
+      y: 0,
+      zIndex: 0,
+    })
+    setElements([rect])
+    setSelectedIds([rect.id])
+    canvas.render()
+
+    expect(canvas.getSelectedIds().size).toBe(1)
+
+    canvas.setActiveTool("hand")
+
+    expect(canvas.getSelectedIds().size).toBe(0)
+  })
+
+  it("overlay stays hidden when switching back to select after selection was cleared", () => {
+    const rect = createRectangle({
+      cornerRadius: 0,
+      height: 100,
+      locked: false,
+      rotation: 0,
+      visible: true,
+      width: 100,
+      x: 0,
+      y: 0,
+      zIndex: 0,
+    })
+    setElements([rect])
+    setSelectedIds([rect.id])
+    canvas.render()
+
+    canvas.setActiveTool("hand")
+    canvas.setActiveTool("select")
+
+    expect(canvas.getSelectedIds().size).toBe(0)
+    expect(getOverlayGroupTransform(canvas)).toBeNull()
+  })
 })
