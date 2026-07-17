@@ -1,34 +1,9 @@
 import "./index.css"
 import { AdrawCanvas, type ToolType } from "@adraw/core"
 
-const container = document.querySelector<HTMLDivElement>("#app")!
-
-const toolbar = document.createElement("div")
-toolbar.className = "toolbar"
-toolbar.innerHTML = `
-  <button data-tool="select" title="Select (V)">Select</button>
-  <button data-tool="hand" title="Hand (H)">Hand</button>
-  <button data-tool="rectangle" title="Rectangle (R)">Rectangle</button>
-  <button data-tool="ellipse" title="Ellipse (E)">Ellipse</button>
-  <button data-tool="draw" title="Draw (D)">Draw</button>
-  <button data-tool="line" title="Line (L)">Line</button>
-  <button data-tool="eraser" title="Eraser (E)">Eraser</button>
-  <div class="separator"></div>
-  <button data-action="undo" title="Undo (Ctrl+Z)">Undo</button>
-  <button data-action="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
-  <div class="separator"></div>
-  <button data-action="zoom-in" title="Zoom In">+</button>
-  <button data-action="zoom-out" title="Zoom Out">-</button>
-  <button data-action="zoom-fit" title="Zoom to Fit">Fit</button>
-  <button data-action="reset" title="Reset">Reset</button>
-`
-
-const canvasContainer = document.createElement("div")
-canvasContainer.className = "canvas-container"
-canvasContainer.style.cssText = "width: 100%; height: calc(100vh - 50px);"
-
-container.appendChild(toolbar)
-container.appendChild(canvasContainer)
+const toolbar = document.querySelector<HTMLDivElement>(".toolbar")!
+const canvasContainer =
+  document.querySelector<HTMLDivElement>(".canvas-container")!
 
 const vanilla = new AdrawCanvas({
   container: canvasContainer,

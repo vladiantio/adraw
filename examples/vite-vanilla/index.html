@@ -7,7 +7,27 @@
     <title>vite-vanilla</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div class="toolbar">
+      <button data-tool="select" title="Select (V)">Select</button>
+      <button data-tool="hand" title="Hand (H)">Hand</button>
+      <button data-tool="rectangle" title="Rectangle (R)">Rectangle</button>
+      <button data-tool="ellipse" title="Ellipse (E)">Ellipse</button>
+      <button data-tool="draw" title="Draw (D)">Draw</button>
+      <button data-tool="line" title="Line (L)">Line</button>
+      <button data-tool="eraser" title="Eraser (E)">Eraser</button>
+      <div class="separator"></div>
+      <button data-action="undo" title="Undo (Ctrl+Z)">Undo</button>
+      <button data-action="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
+      <div class="separator"></div>
+      <button data-action="zoom-in" title="Zoom In">+</button>
+      <button data-action="zoom-out" title="Zoom Out">-</button>
+      <button data-action="zoom-fit" title="Zoom to Fit">Fit</button>
+      <button data-action="reset" title="Reset">Reset</button>
+    </div>
+    <div
+      class="canvas-container"
+      style="width: 100%; height: calc(100vh - 50px)"
+    ></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
