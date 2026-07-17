@@ -5,6 +5,9 @@ on:
     tags:
       - "@adraw/*"
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
