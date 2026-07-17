@@ -47,11 +47,14 @@ export interface Tool {
   // when the tool isn't brushing. Rendered as a dashed overlay, not committed as
   // an element. Only the select tool implements this.
   getSelectionBox?: () => BoundingBox | null
-  // True while the tool is actively resizing or rotating the selection. The
-  // transform overlay (bounding box + handles) is hidden during the gesture so
-  // it doesn't visually lag the element being transformed. Only the select tool
+  // True while the tool is actively resizing the selection. The transform
+  // overlay (bounding box + handles) is hidden during the gesture so it
+  // doesn't visually lag the element being transformed. Only the select tool
   // implements this.
-  isTransforming?: () => boolean
+  isResizing?: () => boolean
+  // True while the tool is actively rotating the selection. Only the select
+  // tool implements this.
+  isRotating?: () => boolean
 }
 
 export function createBaseToolState(): ToolState {

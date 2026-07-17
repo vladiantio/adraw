@@ -86,8 +86,11 @@ export function createSelectTool(
     getTemporaryElement() {
       return null
     },
-    isTransforming() {
-      return dragHandle !== null
+    isResizing() {
+      return dragHandle !== null && dragHandle !== "rotation"
+    },
+    isRotating() {
+      return dragHandle === "rotation"
     },
     onActivate() {
       state.isActive = true
