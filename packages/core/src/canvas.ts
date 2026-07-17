@@ -906,6 +906,7 @@ export class AdrawCanvas {
     })
 
     this.on("toolChange", ({ tool }) => {
+      this.renderTransformOverlay()
       this.updateCursor(tool)
     })
 

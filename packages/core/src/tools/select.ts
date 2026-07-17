@@ -95,7 +95,7 @@ export function createSelectTool(
     onActivate() {
       state.isActive = true
     },
-    onDeactivate() {
+    onDeactivate(context: ToolContext) {
       state.isActive = false
       state.startPoint = null
       state.currentPoint = null
@@ -108,6 +108,7 @@ export function createSelectTool(
       brushBox = null
       brushBaseSelection = null
       originalPositions.clear()
+      context.setSelectedIds(new Set())
     },
     onPointerDown(context: ToolContext, point: Point, event: PointerEvent) {
       state.startPoint = point
