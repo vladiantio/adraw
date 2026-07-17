@@ -183,3 +183,12 @@ No hooks — the custom element is the whole public surface. Drive via `element.
 ## Changesets
 
 Config in `.changeset/config.json`. Automated changelog via `@changesets/changelog-github`. Bumps are `patch` by default for internal deps. Run `pnpm changeset` to create a new changeset.
+
+### Release workflow (e.g. 0.1 → 0.2)
+
+1. Review commits since the last tag: `git log <last-tag>..HEAD --oneline`
+2. Categorize changes per package (minor for features, patch for fixes/docs)
+3. Create changeset files: create `.md` files in `.changeset/` with YAML frontmatter describing which packages and what bump type, plus a summary body
+4. Run `pnpm ci:version` — consumes changesets, bumps `package.json` versions, generates `CHANGELOG.md`
+5. Review and commit the version bump and changelogs
+6. Run `pnpm ci:release` to publish to npm (requires npm login and access)
