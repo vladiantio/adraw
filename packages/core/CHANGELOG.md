@@ -1,5 +1,23 @@
 # @adraw/core
 
+## 0.2.0
+
+### Minor Changes
+
+- **Line tool**: new `line` element type with `startX`/`startY`/`endX`/`endY`, dedicated line tool in the tool system, hit testing, selection stroke, and rotation support.
+
+- **Auto-switch to select**: after creating an element with any creation tool (rectangle, ellipse, line, draw), the canvas automatically switches to the select tool. The newly created element is also automatically selected. Automatic selection can be prevented when needed.
+
+- **Light-dark color mode**: color constants now support `light-dark()` CSS color function, enabling automatic theme adaptation via CSS `color-scheme`.
+
+- **Transform overlay improvements**:
+
+  - Overlay now renders immediately on tool change and clears selection on deactivation.
+  - `isTransforming` split into `isResizing` and `isRotating` for more granular overlay suppression.
+  - Improved rotation handling for multi-selection groups.
+  - `selectElements` renamed to `renderSelectElements`.
+  - Redundant line stroke update logic removed.
+
 ## 0.1.1
 
 ### Patch Changes
