@@ -7,10 +7,10 @@
 }
 
 @theme {
-  --color-background: light-dark(oklch(1 0 0), oklch(0.225 0 0));
-  --color-foreground: light-dark(oklch(0.225 0 0), oklch(0.985 0 0));
-  --color-card: light-dark(oklch(0.9 0 0), oklch(0.325 0 0));
-  --color-primary: light-dark(oklch(0.44 0.12 248), oklch(0.84 0.12 248));
+  --color-background: light-dark(oklch(0.96 0.02 248), oklch(0.22 0.018 248));
+  --color-foreground: light-dark(oklch(0.1 0 0), oklch(0.985 0 0));
+  --color-card: light-dark(oklch(1 0 0), oklch(0.24 0.02 248));
+  --color-primary: light-dark(oklch(0.44 0.14 248), oklch(0.84 0.1 248));
   --color-primary-foreground: light-dark(oklch(1 0 0), oklch(0.205 0.12 248));
   --color-secondary: light-dark(oklch(0.97 0 0), oklch(0.269 0 0));
   --color-secondary-foreground: light-dark(oklch(0.205 0 0), oklch(0.985 0 0));
@@ -22,8 +22,8 @@
     oklch(0.577 0.245 27.325),
     oklch(0.704 0.191 22.216)
   );
-  --color-border: light-dark(oklch(0.922 0 0), oklch(1 0 0 / 10%));
-  --color-input: light-dark(oklch(0.922 0 0), oklch(1 0 0 / 15%));
+  --color-border: light-dark(oklch(0 0 0 / 10%), oklch(1 0 0 / 10%));
+  --color-input: light-dark(oklch(0 0 0 / 15%), oklch(1 0 0 / 15%));
   --color-ring: light-dark(oklch(0.708 0 0), oklch(0.556 0 0));
 
   --font-sans:
@@ -36,7 +36,10 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground overscroll-none antialiased [--adraw-background:var(--color-background)] [--adraw-stroke:var(--color-foreground)] [--adraw-selection:var(--color-primary)];
+    @apply bg-background text-foreground overscroll-none antialiased;
+    --adraw-background: light-dark(oklch(1 0 0), oklch(0.18 0.01 248));
+    --adraw-stroke: var(--color-foreground);
+    --adraw-selection: var(--color-primary);
   }
   [role="button"],
   button {
