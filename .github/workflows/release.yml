@@ -12,5 +12,5 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
