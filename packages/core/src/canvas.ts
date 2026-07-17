@@ -1108,8 +1108,11 @@ export class AdrawCanvas {
     // Hide the bounding box + handles while actively resizing/rotating so the
     // overlay doesn't lag the element mid-gesture; it reappears on pointer up.
     // Opt out via the `hideOverlayWhileTransforming` option.
+    const transforming =
+      this.activeTool.isResizing?.() || this.activeTool.isRotating?.()
     const suppressed =
-      this.hideOverlayWhileTransforming && this.activeTool.isTransforming?.()
+      (this.hideOverlayWhileTransforming && transforming) ||
+      (this.activeTool.isRotating?.() && selectedIds.size > 1)
 
     const bounds =
       selectedIds.size === 0 || suppressed
@@ -1126,26 +1129,13 @@ export class AdrawCanvas {
 
     const { x, y, width, height } = bounds
 
-    // Rotate the overlay to match the selected elements' rotation.
-    // If all selected elements share the same rotation, use that.
+    // Rotate the overlay to match a single selected element's rotation.
     let transform = ""
-    if (selectedIds.size > 0) {
-      let commonRotation: number | null = null
-      let allSame = true
-      for (const id of selectedIds) {
-        const el = elements.get(id)
-        if (!el) {
-          continue
-        }
-        if (commonRotation === null) {
-          commonRotation = el.rotation
-        } else if (el.rotation !== commonRotation) {
-          allSame = false
-          break
-        }
-      }
-      if (allSame && commonRotation) {
-        transform = `rotate(${commonRotation}, ${x + width / 2}, ${y + height / 2})`
+    if (selectedIds.size === 1) {
+      const [onlyId] = selectedIds
+      const element = elements.get(onlyId)
+      if (element && element.rotation) {
+        transform = `rotate(${element.rotation}, ${x + width / 2}, ${y + height / 2})`
       }
     }
     if (transform) {
