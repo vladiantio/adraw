@@ -6,7 +6,11 @@ import {
   STROKE_WIDTH,
 } from "./constants"
 import { screenToCanvas } from "./coordinates"
-import { DEFAULT_PATH_SMOOTHING, getElementsBounds } from "./elements"
+import {
+  createMedia,
+  DEFAULT_PATH_SMOOTHING,
+  getElementsBounds,
+} from "./elements"
 import {
   canRedo,
   canUndo,
@@ -30,6 +34,7 @@ import type {
   CanvasElement,
   ElementId,
   LineElement,
+  MediaElement,
   Point,
   ToolType,
   ViewportState,
@@ -54,6 +59,17 @@ export interface AdrawCanvasOptions extends CanvasOptions {
   // When provided, the canvas mounts into this container immediately. Omit it to
   // create a headless instance (state only) and call `mount(container)` later.
   container?: HTMLElement
+}
+
+export interface MediaInput {
+  src: string
+  mimeType: string
+  naturalWidth: number
+  naturalHeight: number
+  x?: number
+  y?: number
+  width?: number
+  height?: number
 }
 
 export interface CanvasEventMap {
@@ -370,6 +386,54 @@ export class AdrawCanvas {
 
   getElements(): Map<ElementId, CanvasElement> {
     return this.elements
+  }
+
+  insertMedia(descriptors: MediaInput | MediaInput[]): MediaElement[] {
+    const inputs = Array.isArray(descriptors) ? descriptors : [descriptors]
+    if (inputs.length === 0) {
+      return []
+    }
+
+    const maxZ = Math.max(
+      0,
+      ...[...this.elements.values()].map((el) => el.zIndex),
+    )
+    const elements: MediaElement[] = []
+
+    for (let i = 0; i < inputs.length; i++) {
+      const input = inputs[i]
+      const x = input.x ?? this.viewport.x
+      const y = input.y ?? this.viewport.y
+      const width = input.width ?? input.naturalWidth
+      const height = input.height ?? input.naturalHeight
+
+      elements.push(
+        createMedia({
+          height,
+          locked: false,
+          mimeType: input.mimeType,
+          naturalHeight: input.naturalHeight,
+          naturalWidth: input.naturalWidth,
+          rotation: 0,
+          src: input.src,
+          visible: true,
+          width,
+          x,
+          y,
+          zIndex: maxZ + 1 + i,
+        }),
+      )
+    }
+
+    this.history = pushHistory(this.history, this.elements, this.selectedIds)
+
+    for (const element of elements) {
+      this.elements.set(element.id, element)
+    }
+
+    this.emit("change", { elements: this.elements })
+    this.setActiveTool("select")
+    return elements
   }
 
   getSelectedIds(): Set<ElementId> {
@@ -890,9 +954,8 @@ export class AdrawCanvas {
     this.on("change", () => {
       if (this.getActiveTool() === "select") {
         this.renderSelectElements()
-      } else {
-        this.reconcileElements()
       }
+      this.reconcileElements()
     })
 
     this.on("viewportChange", () => {
