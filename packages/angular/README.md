@@ -121,7 +121,7 @@ Returns the `CanvasService` for the nearest `provideCanvas()`.
 
 ```ts
 const { tool, setTool } = useTool()
-// tool: Signal — "select" | "hand" | "draw" | "eraser" | "rectangle" | "ellipse" | "media"
+// tool: Signal<ToolType> — "select" | "hand" | "draw" | "eraser" | "rectangle" | "ellipse" | "line"
 setTool("draw")
 ```
 
@@ -130,7 +130,7 @@ setTool("draw")
 ```ts
 const { viewport, setViewport, zoomIn, zoomOut, resetZoom, zoomToFit } =
   useViewport()
-// viewport: Signal — { x: number, y: number, zoom: number }
+// viewport: Signal<ViewportState> — { x: number, y: number, zoom: number }
 ```
 
 ### `useHistory()`

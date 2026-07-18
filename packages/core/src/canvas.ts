@@ -22,7 +22,6 @@ import {
   createEraserTool,
   createHandTool,
   createLineTool,
-  createMediaTool,
   createRectangleTool,
   createSelectTool,
 } from "./tools"
@@ -297,7 +296,6 @@ export class AdrawCanvas {
     this.tools.set("line", createLineTool())
     this.tools.set("draw", createDrawTool())
     this.tools.set("eraser", createEraserTool())
-    this.tools.set("media", createMediaTool())
 
     this.activeTool = this.tools.get("select")!
     this.activeTool.onActivate(this.getToolContext())
@@ -546,10 +544,6 @@ export class AdrawCanvas {
         }
         case "l": {
           this.setActiveTool("line")
-          break
-        }
-        case "m": {
-          this.setActiveTool("media")
           break
         }
         case "delete":
@@ -937,7 +931,6 @@ export class AdrawCanvas {
       eraser: "crosshair",
       hand: "grab",
       line: "crosshair",
-      media: "copy",
       rectangle: "crosshair",
       select: "default",
     }

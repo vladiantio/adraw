@@ -98,7 +98,6 @@ export type ToolType =
   | "rectangle"
   | "ellipse"
   | "line"
-  | "media"
 
 export interface ViewportState {
   x: number

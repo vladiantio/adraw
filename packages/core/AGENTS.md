@@ -91,7 +91,7 @@ All extend `BaseElement` (id, type, x, y, width, height, rotation, zIndex, locke
 
 ### Tool types
 
-`"select" | "hand" | "draw" | "eraser" | "rectangle" | "ellipse" | "line" | "media"`
+`"select" | "hand" | "draw" | "eraser" | "rectangle" | "ellipse" | "line"`
 
 ### Coordinate types
 

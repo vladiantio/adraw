@@ -28,7 +28,6 @@ A lightweight, framework-agnostic infinity canvas library built on SVG. Supports
 | Rectangle | Draw rectangles                           |
 | Ellipse   | Draw ellipses                             |
 | Line      | Draw lines                                |
-| Media     | Place images on the canvas                |
 
 ## Packages
 

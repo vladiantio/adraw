@@ -86,7 +86,7 @@ Returns the raw context value: `state` (reactive `elements`, `viewport`, `active
 
 ```ts
 const tool = useTool()
-// tool.tool: ToolType — "select" | "hand" | "draw" | "eraser" | "rectangle" | "ellipse" | "media"
+// tool.tool: ToolType — "select" | "hand" | "draw" | "eraser" | "rectangle" | "ellipse" | "line"
 tool.setTool("draw")
 ```
 
@@ -94,7 +94,7 @@ tool.setTool("draw")
 
 ```ts
 const viewport = useViewport()
-// viewport.viewport: { x: number, y: number, zoom: number }
+viewport.viewport // ViewportState — { x: number, y: number, zoom: number }
 viewport.zoomIn()
 viewport.zoomOut()
 viewport.resetZoom()

@@ -36,7 +36,6 @@ Pass `container` to mount immediately, or omit it and call `canvas.mount(el)` la
 | `rectangle` | Draw rectangles                           |
 | `ellipse`   | Draw ellipses                             |
 | `line`      | Draw lines                                |
-| `media`     | Insert images                             |
 
 ```ts
 canvas.setActiveTool("draw")
@@ -147,12 +146,12 @@ Disconnects the resize observer and removes the SVG element.
 
 ## CSS variables
 
-| Variable             | Default       | Description          |
-| -------------------- | ------------- | -------------------- |
-| `--adraw-background` | `#ffffff`     | Canvas background    |
-| `--adraw-stroke`     | `#000000`     | Default stroke color |
-| `--adraw-fill`       | `transparent` | Default fill color   |
-| `--adraw-selection`  | `#4f46e5`     | Selection handles    |
+| Variable             | Default                                                 | Description          |
+| -------------------- | ------------------------------------------------------- | -------------------- |
+| `--adraw-background` | `light-dark(#fff, #000)`                                | Canvas background    |
+| `--adraw-stroke`     | `light-dark(#000, #fff)`                                | Default stroke color |
+| `--adraw-fill`       | `transparent`                                           | Default fill color   |
+| `--adraw-selection`  | `light-dark(oklch(0.44 0.14 248), oklch(0.84 0.1 248))` | Selection handles    |
 
 ## License
 

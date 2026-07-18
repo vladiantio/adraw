@@ -94,7 +94,7 @@ Returns the raw context value, including `elements`, `viewport`, `activeTool`, `
 
 ```ts
 const { tool, setTool } = useTool()
-// tool: ToolType — "select" | "hand" | "draw" | "eraser" | "rectangle" | "ellipse" | "media"
+// tool: ToolType — "select" | "hand" | "draw" | "eraser" | "rectangle" | "ellipse" | "line"
 setTool("draw")
 ```
 
@@ -103,7 +103,7 @@ setTool("draw")
 ```ts
 const { viewport, setViewport, zoomIn, zoomOut, resetZoom, zoomToFit } =
   useViewport()
-// viewport: { x: number, y: number, zoom: number }
+// viewport: ViewportState — { x: number, y: number, zoom: number }
 ```
 
 ### `useHistory()`
