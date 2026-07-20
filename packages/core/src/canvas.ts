@@ -208,6 +208,8 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
 
     case "line": {
       const line = document.createElementNS(svgNamespaceURI, "line")
+      line.setAttribute("stroke-linecap", "round")
+      line.setAttribute("stroke-linejoin", "round")
       line.setAttribute("x1", `${element.startX}`)
       line.setAttribute("y1", `${element.startY}`)
       line.setAttribute("x2", `${element.endX}`)
@@ -224,6 +226,8 @@ export function createElementGroup(element: CanvasElement): SVGGElement {
     case "path": {
       const pathData = pointsToPath(element.points, element.smoothing)
       const path = document.createElementNS(svgNamespaceURI, "path")
+      path.setAttribute("stroke-linecap", "round")
+      path.setAttribute("stroke-linejoin", "round")
       path.setAttribute("d", pathData)
       path.setAttribute("fill", "none")
       path.setAttribute("stroke", element.strokeColor || STROKE_COLOR)
