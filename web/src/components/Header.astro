@@ -1,5 +1,12 @@
 ---
 import Logo from "../assets/logo.svg"
+import { LaptopMinimal, Moon, Sun } from "@lucide/astro"
+
+const themes = [
+  { icon: LaptopMinimal, label: "System", name: "system" },
+  { icon: Sun, label: "Light", name: "light" },
+  { icon: Moon, label: "Dark", name: "dark" },
+]
 ---
 
 <div class="flex items-center justify-between px-6 h-18">
@@ -10,10 +17,18 @@ import Logo from "../assets/logo.svg"
   <ul class="flex gap-6 items-center">
     <li><a href="/docs/core">Docs</a></li>
     <li><a href="/examples">Examples</a></li>
-    <li>
-      <label><input type="radio" name="theme" value="system" /> System</label>
-      <label><input type="radio" name="theme" value="light" /> Light</label>
-      <label><input type="radio" name="theme" value="dark" /> Dark</label>
+    <li class="flex">
+      {themes.map((theme) => (
+        <label class="cursor-pointer hover:bg-primary/10 has-checked:bg-primary has-checked:text-background p-2 rounded-md" title={theme.label}>
+          <input
+            type="radio"
+            class="sr-only"
+            name="theme"
+            value={theme.name}
+          />
+          <theme.icon size={16} />
+        </label>
+      ))}
     </li>
   </ul>
 </div>
