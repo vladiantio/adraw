@@ -61,6 +61,14 @@ export interface AdrawCanvasOptions extends CanvasOptions {
   container?: HTMLElement
 }
 
+export interface ToImageOptions {
+  format?: "png" | "jpeg" | "webp"
+  background?: string
+  padding?: number
+  scale?: number
+  quality?: number
+}
+
 export interface MediaInput {
   src: string
   mimeType: string
@@ -1537,5 +1545,115 @@ export class AdrawCanvas {
   destroy(): void {
     this.resizeObserver?.disconnect()
     this.svgElement?.remove()
+  }
+
+  async toImage(options: ToImageOptions = {}): Promise<Blob> {
+    const {
+      format = "png",
+      background,
+      padding = 0,
+      scale = 1,
+      quality = 0.92,
+    } = options
+
+    const visibleElements = [...this.elements.values()]
+      .filter((el) => el.visible)
+      .toSorted((a, b) => a.zIndex - b.zIndex)
+
+    const bounds = getElementsBounds(this.elements)
+    if (!bounds || visibleElements.length === 0) {
+      const c = document.createElement("canvas")
+      c.width = 1
+      c.height = 1
+      return new Promise<Blob>((resolve, reject) => {
+        c.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob)
+            } else {
+              reject(new Error("toImage: canvas.toBlob returned null"))
+            }
+          },
+          `image/${format === "jpeg" ? "png" : format}`,
+          quality,
+        )
+      })
+    }
+
+    const areaX = bounds.left - padding
+    const areaY = bounds.top - padding
+    const areaW = Math.max(1, bounds.width + padding * 2)
+    const areaH = Math.max(1, bounds.height + padding * 2)
+
+    const svg = document.createElementNS(svgNamespaceURI, "svg")
+    svg.setAttribute("xmlns", svgNamespaceURI)
+    svg.setAttribute("viewBox", `${areaX} ${areaY} ${areaW} ${areaH}`)
+    svg.setAttribute("width", `${areaW}`)
+    svg.setAttribute("height", `${areaH}`)
+
+    const style = document.createElementNS(svgNamespaceURI, "style")
+    style.textContent =
+      ":root{color-scheme:light;--adraw-stroke:#000;--adraw-fill:transparent}"
+    svg.appendChild(style)
+
+    const bgColor =
+      format === "jpeg" && (background == null || background === "transparent")
+        ? "#fff"
+        : background
+    if (bgColor) {
+      const bg = document.createElementNS(svgNamespaceURI, "rect")
+      bg.setAttribute("x", `${areaX}`)
+      bg.setAttribute("y", `${areaY}`)
+      bg.setAttribute("width", `${areaW}`)
+      bg.setAttribute("height", `${areaH}`)
+      bg.setAttribute("fill", bgColor)
+      svg.appendChild(bg)
+    }
+
+    for (const element of visibleElements) {
+      const group = createElementGroup(element)
+      svg.appendChild(group)
+    }
+
+    const serializer = new XMLSerializer()
+    const svgStr = serializer.serializeToString(svg)
+    const svgBlob = new Blob([svgStr], {
+      type: "image/svg+xml;charset=utf-8",
+    })
+    const url = URL.createObjectURL(svgBlob)
+
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const image = new Image()
+        image.onload = () => resolve(image)
+        image.onerror = () =>
+          reject(new Error("toImage: failed to rasterize SVG"))
+        image.src = url
+      })
+
+      const canvas = document.createElement("canvas")
+      canvas.width = Math.round(areaW * scale)
+      canvas.height = Math.round(areaH * scale)
+      const ctx = canvas.getContext("2d")!
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = "high"
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+      return new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob)
+            } else {
+              reject(new Error("toImage: canvas.toBlob returned null"))
+            }
+          },
+          `image/${format}`,
+          quality,
+        )
+      })
+    } finally {
+      URL.revokeObjectURL(url)
+    }
   }
 }
