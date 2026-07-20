@@ -469,7 +469,11 @@ export class AdrawCanvas {
     }
 
     this.emit("change", { elements: this.elements })
-    this.setActiveTool("select")
+    this.selectedIds = new Set(elements.map((elem) => elem.id))
+    this.emit("selectionChange", { selectedIds: this.selectedIds })
+    if (this.activeTool.type !== "select") {
+      this.setActiveTool("select")
+    }
     return elements
   }
 
