@@ -1,5 +1,5 @@
 import "./index.css"
-import { AdrawCanvas, type ToolType } from "@adraw/core"
+import { AdrawCanvas, type ToolType, type MediaInput } from "@adraw/core"
 
 const toolbar = document.querySelector<HTMLDivElement>(".toolbar")!
 const canvasContainer =
@@ -64,6 +64,63 @@ function updateToolbar() {
 vanilla.on("toolChange", updateToolbar)
 
 updateToolbar()
+
+// Media insertion
+const fileInput = document.getElementById("file-input") as HTMLInputElement
+
+fileInput.addEventListener("change", async () => {
+  const files = fileInput.files
+  if (!files || files.length === 0) {
+    return
+  }
+
+  const descriptors: MediaInput[] = await Promise.all(
+    Array.from(files, async (file) => {
+      const dataUrl = await readFileAsDataURL(file)
+      const img = await getImageFromSrc(dataUrl)
+      return {
+        mimeType: file.type,
+        naturalHeight: img.naturalHeight,
+        naturalWidth: img.naturalWidth,
+        src: dataUrl,
+      }
+    }),
+  )
+
+  if (descriptors.length > 0) {
+    vanilla.insertMedia(descriptors)
+  }
+
+  fileInput.value = ""
+})
+
+const readFileAsDataURL = (file: File | Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.addEventListener("load", (ev) => {
+      if (ev.target?.readyState === FileReader.DONE) {
+        resolve(ev.target.result as string)
+      } else {
+        reject(new Error("Failed to load file."))
+      }
+    })
+    reader.addEventListener("error", reject)
+  })
+
+const getImageFromSrc = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = src
+  })
+
+const mediaBtn = document.getElementById("btn-media")!
+
+mediaBtn.addEventListener("click", () => {
+  fileInput.click()
+})
 
 // Expose the canvas instance so end-to-end tests can assert on real state
 // (active tool, elements, viewport, history).
