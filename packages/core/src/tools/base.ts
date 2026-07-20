@@ -16,6 +16,7 @@ export interface ToolContext {
   getViewport: () => ViewportState
   setViewport: (viewport: ViewportState) => void
   getCanvasSize: () => { width: number; height: number }
+  getStrokeColor: () => string
   pushHistory: () => void
   setActiveTool: (tool: ToolType) => void
 }

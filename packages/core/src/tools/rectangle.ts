@@ -38,7 +38,7 @@ export function createRectangleTool(options: RectangleToolOptions = {}): Tool {
       state.startPoint = point
       state.currentPoint = point
     },
-    onPointerMove(_context: ToolContext, point: Point, _event: PointerEvent) {
+    onPointerMove(context: ToolContext, point: Point, _event: PointerEvent) {
       if (!state.startPoint) {
         return
       }
@@ -52,7 +52,8 @@ export function createRectangleTool(options: RectangleToolOptions = {}): Tool {
         height: bounds.height,
         locked: false,
         rotation: 0,
-        strokeColor: toolOptions.strokeColor ?? STROKE_COLOR,
+        strokeColor:
+          context.getStrokeColor() ?? toolOptions.strokeColor ?? STROKE_COLOR,
         strokeWidth: toolOptions.strokeWidth ?? STROKE_WIDTH,
         visible: true,
         width: bounds.width,
@@ -74,7 +75,8 @@ export function createRectangleTool(options: RectangleToolOptions = {}): Tool {
           height: bounds.height,
           locked: false,
           rotation: 0,
-          strokeColor: toolOptions.strokeColor ?? STROKE_COLOR,
+          strokeColor:
+            context.getStrokeColor() ?? toolOptions.strokeColor ?? STROKE_COLOR,
           strokeWidth: toolOptions.strokeWidth ?? STROKE_WIDTH,
           visible: true,
           width: bounds.width,

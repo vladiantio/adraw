@@ -260,6 +260,7 @@ export class AdrawCanvas {
   private viewport: ViewportState
   private activeTool: Tool
   private snappingConfig: SnappingConfig
+  private strokeColor: string = STROKE_COLOR
   private hideOverlayWhileTransforming: boolean
   private history = createHistoryState()
   private listeners = new Map<keyof CanvasEventMap, Set<EventListener<any>>>()
@@ -335,6 +336,7 @@ export class AdrawCanvas {
       getCanvasSize: () => this.canvasSize,
       getElements: () => this.elements,
       getSelectedIds: () => this.selectedIds,
+      getStrokeColor: () => this.strokeColor,
       getViewport: () => this.viewport,
       pushHistory: () => {
         this.history = pushHistory(
@@ -487,6 +489,21 @@ export class AdrawCanvas {
 
   setSnappingConfig(config: Partial<SnappingConfig>): void {
     this.snappingConfig = { ...this.snappingConfig, ...config }
+  }
+
+  setStrokeColor(color: string): void {
+    this.strokeColor = color
+
+    if (this.selectedIds.size > 0) {
+      for (const id of this.selectedIds) {
+        const element = this.elements.get(id)
+        if (element && "strokeColor" in element) {
+          this.elements.set(id, { ...element, strokeColor: color })
+        }
+      }
+    }
+
+    this.emit("change", { elements: this.elements })
   }
 
   getHideOverlayWhileTransforming(): boolean {
@@ -1435,6 +1452,7 @@ export class AdrawCanvas {
         lineElement.setAttribute("y1", `${element.startY}`)
         lineElement.setAttribute("x2", `${element.endX}`)
         lineElement.setAttribute("y2", `${element.endY}`)
+        lineElement.setAttribute("stroke", element.strokeColor || STROKE_COLOR)
         break
       }
       case "path": {
@@ -1443,12 +1461,14 @@ export class AdrawCanvas {
           "d",
           pointsToPath(element.points, element.smoothing),
         )
+        pathElement.setAttribute("stroke", element.strokeColor || STROKE_COLOR)
         break
       }
       case "rectangle": {
         const rectElement = group.getElementsByTagName("rect")[0]
         rectElement.setAttribute("width", `${element.width}`)
         rectElement.setAttribute("height", `${element.height}`)
+        rectElement.setAttribute("stroke", element.strokeColor || STROKE_COLOR)
         break
       }
       case "ellipse": {
@@ -1457,6 +1477,10 @@ export class AdrawCanvas {
         ellipseElement.setAttribute("cy", `${element.height / 2}`)
         ellipseElement.setAttribute("rx", `${element.width / 2}`)
         ellipseElement.setAttribute("ry", `${element.height / 2}`)
+        ellipseElement.setAttribute(
+          "stroke",
+          element.strokeColor || STROKE_COLOR,
+        )
         break
       }
       case "media": {

@@ -159,7 +159,7 @@ export function createDrawTool(options: DrawToolOptions = {}): Tool {
       state.currentPoint = point
       currentPoints = [point]
     },
-    onPointerMove(_context: ToolContext, point: Point, _event: PointerEvent) {
+    onPointerMove(context: ToolContext, point: Point, _event: PointerEvent) {
       if (!state.startPoint) {
         return
       }
@@ -167,7 +167,11 @@ export function createDrawTool(options: DrawToolOptions = {}): Tool {
       state.currentPoint = point
       currentPoints.push(point)
 
-      const element = createPathElement(currentPoints, toolOptions)
+      const color = context.getStrokeColor() ?? toolOptions.strokeColor
+      const element = createPathElement(currentPoints, {
+        ...toolOptions,
+        strokeColor: color,
+      })
 
       if (element) {
         temporaryElement = element
@@ -182,9 +186,14 @@ export function createDrawTool(options: DrawToolOptions = {}): Tool {
         return
       }
 
-      const element = createPathElement(currentPoints, toolOptions, {
-        zIndex: context.getElements().size,
-      })
+      const color = context.getStrokeColor() ?? toolOptions.strokeColor
+      const element = createPathElement(
+        currentPoints,
+        { ...toolOptions, strokeColor: color },
+        {
+          zIndex: context.getElements().size,
+        },
+      )
 
       if (element) {
         const elements = context.getElements()

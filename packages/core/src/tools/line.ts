@@ -33,7 +33,7 @@ export function createLineTool(options: ToolOptions = {}): Tool {
       state.startPoint = point
       state.currentPoint = point
     },
-    onPointerMove(_context: ToolContext, point: Point, _event: PointerEvent) {
+    onPointerMove(context: ToolContext, point: Point, _event: PointerEvent) {
       if (!state.startPoint) {
         return
       }
@@ -53,7 +53,8 @@ export function createLineTool(options: ToolOptions = {}): Tool {
         rotation: 0,
         startX: state.startPoint.x,
         startY: state.startPoint.y,
-        strokeColor: toolOptions.strokeColor ?? STROKE_COLOR,
+        strokeColor:
+          context.getStrokeColor() ?? toolOptions.strokeColor ?? STROKE_COLOR,
         strokeWidth: toolOptions.strokeWidth ?? STROKE_WIDTH,
         visible: true,
         width: Math.max(width, 1),
@@ -84,7 +85,8 @@ export function createLineTool(options: ToolOptions = {}): Tool {
           rotation: 0,
           startX: state.startPoint.x,
           startY: state.startPoint.y,
-          strokeColor: toolOptions.strokeColor ?? STROKE_COLOR,
+          strokeColor:
+            context.getStrokeColor() ?? toolOptions.strokeColor ?? STROKE_COLOR,
           strokeWidth: toolOptions.strokeWidth ?? STROKE_WIDTH,
           visible: true,
           width: Math.max(width, 1),
