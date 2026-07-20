@@ -406,10 +406,43 @@ export class AdrawCanvas {
 
     for (let i = 0; i < inputs.length; i++) {
       const input = inputs[i]
-      const x = input.x ?? this.viewport.x
-      const y = input.y ?? this.viewport.y
-      const width = input.width ?? input.naturalWidth
-      const height = input.height ?? input.naturalHeight
+
+      let width: number
+      let height: number
+
+      if (input.width != null && input.height != null) {
+        width = input.width
+        height = input.height
+      } else if (input.width != null) {
+        width = input.width
+        height = Math.round(
+          (input.width / input.naturalWidth) * input.naturalHeight,
+        )
+      } else if (input.height != null) {
+        height = input.height
+        width = Math.round(
+          (input.height / input.naturalHeight) * input.naturalWidth,
+        )
+      } else if (this.canvasSize.width > 0 && this.canvasSize.height > 0) {
+        const visibleWidth = this.canvasSize.width / this.viewport.zoom
+        const visibleHeight = this.canvasSize.height / this.viewport.zoom
+        const padding = 100 / this.viewport.zoom
+        const availableWidth = Math.max(1, visibleWidth - padding)
+        const availableHeight = Math.max(1, visibleHeight - padding)
+        const scale = Math.min(
+          availableWidth / input.naturalWidth,
+          availableHeight / input.naturalHeight,
+          1,
+        )
+        width = Math.round(input.naturalWidth * scale)
+        height = Math.round(input.naturalHeight * scale)
+      } else {
+        width = input.naturalWidth
+        height = input.naturalHeight
+      }
+
+      const x = input.x ?? this.viewport.x - width / 2
+      const y = input.y ?? this.viewport.y - height / 2
 
       elements.push(
         createMedia({
