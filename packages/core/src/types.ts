@@ -42,10 +42,14 @@ export interface BaseElement {
 export interface RectangleElement extends BaseElement {
   type: "rectangle"
   cornerRadius: number
+  strokeWidth: number
+  strokeColor: string
 }
 
 export interface EllipseElement extends BaseElement {
   type: "ellipse"
+  strokeWidth: number
+  strokeColor: string
 }
 
 export interface LineElement extends BaseElement {

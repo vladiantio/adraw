@@ -1,15 +1,21 @@
+import { STROKE_COLOR, STROKE_WIDTH } from "../constants"
 import { createEllipse } from "../elements"
 import type { EllipseElement, Point, ToolType } from "../types"
 import {
   calculateBounds,
   createBaseToolState,
+  getDefaultToolOptions,
   type Tool,
   type ToolContext,
+  type ToolOptions,
   type ToolState,
 } from "./base"
 
-export function createEllipseTool(): Tool {
+export type EllipseToolOptions = ToolOptions
+
+export function createEllipseTool(options: EllipseToolOptions = {}): Tool {
   const state: ToolState = createBaseToolState()
+  const toolOptions = { ...getDefaultToolOptions(), ...options }
   let temporaryElement: EllipseElement | null = null
 
   return {
@@ -43,6 +49,8 @@ export function createEllipseTool(): Tool {
         height: bounds.height,
         locked: false,
         rotation: 0,
+        strokeColor: toolOptions.strokeColor ?? STROKE_COLOR,
+        strokeWidth: toolOptions.strokeWidth ?? STROKE_WIDTH,
         visible: true,
         width: bounds.width,
         x: bounds.x,
@@ -62,6 +70,8 @@ export function createEllipseTool(): Tool {
           height: bounds.height,
           locked: false,
           rotation: 0,
+          strokeColor: toolOptions.strokeColor ?? STROKE_COLOR,
+          strokeWidth: toolOptions.strokeWidth ?? STROKE_WIDTH,
           visible: true,
           width: bounds.width,
           x: bounds.x,

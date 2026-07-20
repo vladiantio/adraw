@@ -1,3 +1,4 @@
+import { STROKE_COLOR, STROKE_WIDTH } from "../constants"
 import { createRectangle } from "../elements"
 import type { Point, RectangleElement, ToolType } from "../types"
 import {
@@ -51,6 +52,8 @@ export function createRectangleTool(options: RectangleToolOptions = {}): Tool {
         height: bounds.height,
         locked: false,
         rotation: 0,
+        strokeColor: toolOptions.strokeColor ?? STROKE_COLOR,
+        strokeWidth: toolOptions.strokeWidth ?? STROKE_WIDTH,
         visible: true,
         width: bounds.width,
         x: bounds.x,
@@ -71,6 +74,8 @@ export function createRectangleTool(options: RectangleToolOptions = {}): Tool {
           height: bounds.height,
           locked: false,
           rotation: 0,
+          strokeColor: toolOptions.strokeColor ?? STROKE_COLOR,
+          strokeWidth: toolOptions.strokeWidth ?? STROKE_WIDTH,
           visible: true,
           width: bounds.width,
           x: bounds.x,
